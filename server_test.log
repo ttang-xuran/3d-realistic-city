@@ -1,0 +1,6 @@
+127.0.0.1 - - [10/Aug/2025 00:14:26] "HEAD /optimized_city.html HTTP/1.1" 200 -
+127.0.0.1 - - [10/Aug/2025 00:14:30] "GET /optimized_city.html HTTP/1.1" 200 -
+127.0.0.1 - - [10/Aug/2025 00:42:26] code 404, message File not found
+127.0.0.1 - - [10/Aug/2025 00:42:26] "GET /zombie-3d.html HTTP/1.1" 404 -
+127.0.0.1 - - [10/Aug/2025 00:42:27] code 404, message File not found
+127.0.0.1 - - [10/Aug/2025 00:42:27] "GET /favicon.ico HTTP/1.1" 404 -

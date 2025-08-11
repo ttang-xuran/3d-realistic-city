@@ -1,0 +1,2 @@
+[console_scripts]
+triagent = triagent.cli:app

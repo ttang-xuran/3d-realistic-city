@@ -1,0 +1,13 @@
+autogen-agentchat==0.7.2
+autogen-ext[anthropic,openai]==0.7.2
+openai>=1.30.0
+anthropic>=0.34.0
+tiktoken>=0.7.0
+typer>=0.12.0
+rich>=13.7.1
+python-dotenv>=1.0.1
+mcp[client]>=1.1.1
+websockets>=12.0
+uvicorn>=0.30.0
+fastapi>=0.111.0
+httpx>=0.27.0

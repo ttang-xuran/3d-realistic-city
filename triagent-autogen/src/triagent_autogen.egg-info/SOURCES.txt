@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/triagent/__init__.py
+src/triagent/cli.py
+src/triagent/core.py
+src/triagent/executor.py
+src/triagent/mcp_search.py
+src/triagent_autogen.egg-info/PKG-INFO
+src/triagent_autogen.egg-info/SOURCES.txt
+src/triagent_autogen.egg-info/dependency_links.txt
+src/triagent_autogen.egg-info/entry_points.txt
+src/triagent_autogen.egg-info/requires.txt
+src/triagent_autogen.egg-info/top_level.txt
