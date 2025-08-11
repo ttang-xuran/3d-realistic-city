@@ -1,52 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="utf-8" />
-  <title>Realistic 3D City - Interactive Urban Simulation</title>
+  <title>真实详细3D城市</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Interactive 3D city simulation with realistic buildings, moving cars and people, traffic lights, day-night cycle, and urban infrastructure. Built with Three.js." />
-  <meta name="keywords" content="3D city, Three.js, simulation, urban, traffic, realistic, interactive" />
   <style>
-    html, body { height: 100%; margin: 0; overflow: hidden; background: #87ceeb; font-family: Arial, sans-serif; }
-    #info { 
-      position: fixed; 
-      left: 10px; 
-      top: 10px; 
-      z-index: 10; 
-      color: white; 
-      background: rgba(0,0,0,0.8); 
-      padding: 15px; 
-      border-radius: 10px; 
-      font: 14px Arial; 
-      max-width: 300px;
-      line-height: 1.4;
-    }
-    #info h3 { margin: 0 0 10px 0; color: #87CEEB; }
-    #info ul { margin: 5px 0; padding-left: 20px; }
-    #info li { margin: 3px 0; }
-    .controls { margin-top: 10px; padding-top: 10px; border-top: 1px solid #555; }
+    html, body { height: 100%; margin: 0; overflow: hidden; background: #87ceeb; }
+    #info { position: fixed; left: 10px; top: 10px; z-index: 10; color: white; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 5px; font: 12px Arial; }
   </style>
 </head>
 <body>
-  <div id="info">
-    <h3>🏙️ Realistic 3D City</h3>
-    <strong>Features:</strong>
-    <ul>
-      <li>🚗 Moving cars with traffic lights</li>
-      <li>🚶 People on sidewalks</li>
-      <li>🦓 Zebra crossings</li>
-      <li>🌅 Day-night cycle</li>
-      <li>🚄 Sky train & subway</li>
-      <li>🎡 Ferris wheel</li>
-      <li>🏢 Realistic buildings</li>
-    </ul>
-    <div class="controls">
-      <strong>Controls:</strong><br>
-      Mouse: Look around<br>
-      WASD: Move camera<br>
-      Space: Toggle audio
-    </div>
-  </div>
+<div id="info">
+  真实详细3D城市 - 鼠标拖拽旋转 | 滚轮缩放<br/>
+  包含详细建筑结构和真实材质
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -60,30 +27,31 @@ let sunLight, moonLight, ambientLight;
 let audioContext, audioEnabled = false;
 
 function init() {
-  // Scene setup
+  console.log('创建真实详细城市...');
+  
+  // 基础场景
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x87ceeb, 50, 200);
+  scene.background = new THREE.Color(0x87ceeb);
   
-  // Camera setup
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 15, 30);
+  camera.position.set(25, 15, 25);
+  camera.lookAt(0, 0, 0);
   
-  // Renderer setup
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x87ceeb);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
   
-  // Initialize everything
+  // 添加光照
   setupLighting();
+  
   createDetailedCity();
   setupControls();
   initAudio();
   animate();
   
-  console.log('Realistic 3D City loaded successfully!');
+  console.log('真实详细城市创建完成！');
 }
 
 // 简单安全的交通系统 - 只有视觉效果，不影响车辆行为
@@ -321,206 +289,44 @@ function setupLighting() {
   scene.add(ambientLight);
   
   // 太阳光
-  sunLight = new THREE.DirectionalLight(0xFFFFAA, 1.2);
-  sunLight.position.set(50, 50, 25);
+  sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  sunLight.position.set(50, 100, 50);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.width = 2048;
   sunLight.shadow.mapSize.height = 2048;
-  sunLight.shadow.camera.near = 0.5;
-  sunLight.shadow.camera.far = 500;
-  sunLight.shadow.camera.left = -50;
-  sunLight.shadow.camera.right = 50;
-  sunLight.shadow.camera.top = 50;
-  sunLight.shadow.camera.bottom = -50;
+  sunLight.shadow.camera.left = -100;
+  sunLight.shadow.camera.right = 100;
+  sunLight.shadow.camera.top = 100;
+  sunLight.shadow.camera.bottom = -100;
   scene.add(sunLight);
   
   // 月光
-  moonLight = new THREE.DirectionalLight(0x4444AA, 0.3);
-  moonLight.position.set(-50, 30, -25);
-  moonLight.castShadow = false;
+  moonLight = new THREE.DirectionalLight(0x9999ff, 0.2);
+  moonLight.position.set(-50, 100, -50);
+  moonLight.castShadow = false; // 减少性能消耗
   scene.add(moonLight);
-}
-
-function createGround() {
-  // 主地面
-  const groundGeometry = new THREE.PlaneGeometry(100, 100);
-  const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x90EE90 });
-  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
   
-  // 人行道
-  const sidewalkGeometry = new THREE.PlaneGeometry(100, 4);
-  const sidewalkMaterial = new THREE.MeshBasicMaterial({ color: 0xC0C0C0 });
-  
-  // 主要道路（深灰色）
-  const roadGeometry = new THREE.PlaneGeometry(100, 8);
-  const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
-  
-  // 南北主干道
-  const roadNS = new THREE.Mesh(roadGeometry, roadMaterial);
-  roadNS.rotation.x = -Math.PI / 2;
-  roadNS.rotation.z = Math.PI / 2;
-  roadNS.position.y = 0.01;
-  scene.add(roadNS);
-  
-  // 东西主干道
-  const roadEW = new THREE.Mesh(roadGeometry, roadMaterial);
-  roadEW.rotation.x = -Math.PI / 2;
-  roadEW.position.y = 0.01;
-  scene.add(roadEW);
-  
-  // 道路标线
-  const lineGeometry = new THREE.PlaneGeometry(100, 0.2);
-  const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-  
-  // 中央分隔线 - 南北
-  const centerLineNS = new THREE.Mesh(lineGeometry, lineMaterial);
-  centerLineNS.rotation.x = -Math.PI / 2;
-  centerLineNS.rotation.z = Math.PI / 2;
-  centerLineNS.position.y = 0.02;
-  scene.add(centerLineNS);
-  
-  // 中央分隔线 - 东西
-  const centerLineEW = new THREE.Mesh(lineGeometry, lineMaterial);
-  centerLineEW.rotation.x = -Math.PI / 2;
-  centerLineEW.position.y = 0.02;
-  scene.add(centerLineEW);
-}
-
-function createRealisticBuilding(x, z, width, height, depth, color) {
-  const building = new THREE.Group();
-  
-  // 主建筑体
-  const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
-  const buildingMaterial = new THREE.MeshBasicMaterial({ color: color });
-  const buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial);
-  buildingMesh.position.y = height / 2;
-  buildingMesh.castShadow = true;
-  buildingMesh.receiveShadow = true;
-  building.add(buildingMesh);
-  
-  // 窗户网格
-  const windowSize = 1.2;
-  const windowSpacing = 2;
-  const floorsCount = Math.floor(height / 3);
-  
-  for (let floor = 1; floor < floorsCount; floor++) {
-    const windowY = floor * 3;
-    
-    // 正面窗户
-    for (let i = -Math.floor(width/3); i <= Math.floor(width/3); i++) {
-      if (Math.abs(i * windowSpacing) < width/2 - 0.5) {
-        const window = new THREE.Mesh(
-          new THREE.PlaneGeometry(windowSize, windowSize),
-          new THREE.MeshBasicMaterial({ 
-            color: Math.random() > 0.3 ? 0x87CEEB : 0xFFFFAA,
-            transparent: true,
-            opacity: 0.8
-          })
-        );
-        window.position.set(i * windowSpacing, windowY, depth/2 + 0.01);
-        building.add(window);
-      }
-    }
-    
-    // 侧面窗户
-    for (let i = -Math.floor(depth/3); i <= Math.floor(depth/3); i++) {
-      if (Math.abs(i * windowSpacing) < depth/2 - 0.5) {
-        const window = new THREE.Mesh(
-          new THREE.PlaneGeometry(windowSize, windowSize),
-          new THREE.MeshBasicMaterial({ 
-            color: Math.random() > 0.3 ? 0x87CEEB : 0xFFFFAA,
-            transparent: true,
-            opacity: 0.8
-          })
-        );
-        window.position.set(width/2 + 0.01, windowY, i * windowSpacing);
-        window.rotation.y = Math.PI/2;
-        building.add(window);
-        
-        // 另一侧
-        const window2 = window.clone();
-        window2.position.set(-width/2 - 0.01, windowY, i * windowSpacing);
-        window2.rotation.y = -Math.PI/2;
-        building.add(window2);
-      }
-    }
-  }
-  
-  // 屋顶细节
-  if (Math.random() > 0.5) {
-    const roofDetail = new THREE.Mesh(
-      new THREE.BoxGeometry(width * 0.8, 1, depth * 0.8),
-      new THREE.MeshBasicMaterial({ color: color * 0.8 })
-    );
-    roofDetail.position.y = height + 0.5;
-    building.add(roofDetail);
-  }
-  
-  // 入口
-  const entrance = new THREE.Mesh(
-    new THREE.BoxGeometry(3, 4, 0.5),
-    new THREE.MeshBasicMaterial({ color: 0x8B4513 })
-  );
-  entrance.position.set(0, 2, depth/2 + 0.25);
-  building.add(entrance);
-  
-  // 入口门
-  const door = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 3),
-    new THREE.MeshBasicMaterial({ color: 0x4A4A4A })
-  );
-  door.position.set(0, 1.5, depth/2 + 0.51);
-  building.add(door);
-  
-  building.position.set(x, 0, z);
-  return building;
+  console.log('动态光照系统创建完成');
 }
 
 function createDetailedCity() {
-  console.log('Creating detailed realistic city...');
-  
-  // Ground and roads
+  // 地面和道路
   createGround();
+  createRoads();
   
-  // Buildings with realistic colors and varied heights
-  const buildingPositions = [
-    // Residential buildings (lower, warmer colors)
-    {x: -25, z: 15, w: 8, h: 12, d: 6, color: 0xD2691E},
-    {x: -15, z: 15, w: 6, h: 9, d: 8, color: 0xCD853F},
-    {x: 15, z: 15, w: 7, h: 10, d: 7, color: 0xBC8F8F},
-    {x: 25, z: 15, w: 9, h: 14, d: 6, color: 0xF4A460},
-    
-    // Commercial buildings (medium height, neutral colors)
-    {x: -25, z: -15, w: 10, h: 18, d: 8, color: 0x696969},
-    {x: -15, z: -15, w: 8, h: 15, d: 10, color: 0x708090},
-    {x: 15, z: -15, w: 9, h: 16, d: 9, color: 0x778899},
-    {x: 25, z: -15, w: 11, h: 20, d: 7, color: 0x2F4F4F},
-    
-    // Office buildings (taller, modern colors)
-    {x: -30, z: 30, w: 12, h: 25, d: 10, color: 0x4682B4},
-    {x: -10, z: 30, w: 8, h: 22, d: 12, color: 0x5F9EA0},
-    {x: 10, z: 30, w: 10, h: 28, d: 8, color: 0x6495ED},
-    {x: 30, z: 30, w: 14, h: 32, d: 10, color: 0x4169E1},
-    
-    // Mixed buildings
-    {x: -30, z: -30, w: 9, h: 16, d: 9, color: 0x8FBC8F},
-    {x: -10, z: -30, w: 11, h: 19, d: 7, color: 0x9ACD32},
-    {x: 10, z: -30, w: 7, h: 13, d: 11, color: 0xDAA520},
-    {x: 30, z: -30, w: 13, h: 24, d: 9, color: 0xB8860B}
-  ];
+  // 详细建筑
+  createDetailedBuildings();
   
-  buildingPositions.forEach(pos => {
-    const building = createRealisticBuilding(pos.x, pos.z, pos.w, pos.h, pos.d, pos.color);
-    scene.add(building);
-  });
+  // 特殊建筑
+  createDetailedSpecialBuildings();
   
-  // Transportation systems
+  // 交通系统
   createSkyTrain();
   createSubway();
   createSkyWheel();
+  
+  // 创建交通信号灯 (disabled - fixing issues)
+  // createTrafficLightSystem();
   
   // 车辆和行人
   createRealisticCars();
@@ -533,41 +339,1153 @@ function createDetailedCity() {
   createSimpleTrafficSystem();
 }
 
-function createRealisticCars() {
-  const carColors = [0xFF0000, 0x0000FF, 0x00FF00, 0xFFFF00, 0xFF00FF, 0x00FFFF, 0xFFA500, 0x800080, 0x000000, 0xFFFFFF];
-  const carPositions = [
-    {x: 0, z: 15, direction: new THREE.Vector3(1, 0, 0)},
-    {x: 0, z: -15, direction: new THREE.Vector3(-1, 0, 0)},
-    {x: 15, z: 0, direction: new THREE.Vector3(0, 0, 1)},
-    {x: -15, z: 0, direction: new THREE.Vector3(0, 0, -1)},
-    {x: 0, z: 25, direction: new THREE.Vector3(1, 0, 0)},
-    {x: 0, z: -25, direction: new THREE.Vector3(-1, 0, 0)}
+function createGround() {
+  // 主地面
+  const groundGeometry = new THREE.PlaneGeometry(100, 100);
+  const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x228b22 });
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = 0;
+  ground.receiveShadow = true;
+  scene.add(ground);
+}
+
+function createRoads() {
+  // 主干道材质
+  const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+  const sidewalkMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+  
+  // 主干道
+  const mainRoadH = new THREE.Mesh(new THREE.PlaneGeometry(80, 6), roadMaterial);
+  mainRoadH.rotation.x = -Math.PI / 2;
+  mainRoadH.position.y = 0.01;
+  scene.add(mainRoadH);
+  
+  const mainRoadV = new THREE.Mesh(new THREE.PlaneGeometry(6, 80), roadMaterial);
+  mainRoadV.rotation.x = -Math.PI / 2;
+  mainRoadV.position.y = 0.01;
+  scene.add(mainRoadV);
+  
+  // 人行道
+  const sidewalkH1 = new THREE.Mesh(new THREE.PlaneGeometry(80, 2), sidewalkMaterial);
+  sidewalkH1.rotation.x = -Math.PI / 2;
+  sidewalkH1.position.set(0, 0.02, 4);
+  scene.add(sidewalkH1);
+  
+  const sidewalkH2 = new THREE.Mesh(new THREE.PlaneGeometry(80, 2), sidewalkMaterial);
+  sidewalkH2.rotation.x = -Math.PI / 2;
+  sidewalkH2.position.set(0, 0.02, -4);
+  scene.add(sidewalkH2);
+  
+  // 道路标线
+  const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const centerLine = new THREE.Mesh(new THREE.PlaneGeometry(70, 0.1), lineMaterial);
+  centerLine.rotation.x = -Math.PI / 2;
+  centerLine.position.y = 0.02;
+  scene.add(centerLine);
+}
+
+function createDetailedBuildings() {
+  console.log('创建详细建筑...');
+  
+  // 建筑数据 - 更多样化
+  const buildings = [
+    // 商业区 - 现代办公楼
+    {pos: [15, 15], height: 20, type: 'office', style: 'modern', color: 0x696969},
+    {pos: [25, 15], height: 16, type: 'office', style: 'glass', color: 0x4A90E2},
+    {pos: [15, 25], height: 18, type: 'office', style: 'brick', color: 0x8B4513},
+    {pos: [25, 25], height: 22, type: 'office', style: 'modern', color: 0x778899},
+    
+    // 住宅区 - 公寓楼
+    {pos: [-15, 15], height: 12, type: 'residential', style: 'apartment', color: 0xD2691E},
+    {pos: [-25, 15], height: 14, type: 'residential', style: 'brick', color: 0xCD853F},
+    {pos: [-15, 25], height: 13, type: 'residential', style: 'apartment', color: 0xDEB887},
+    {pos: [-25, 25], height: 15, type: 'residential', style: 'modern', color: 0xBC8F8F},
+    
+    // 工业区
+    {pos: [-15, -15], height: 8, type: 'industrial', style: 'warehouse', color: 0x808080},
+    {pos: [-25, -15], height: 10, type: 'industrial', style: 'factory', color: 0x696969},
+    {pos: [-15, -25], height: 6, type: 'industrial', style: 'warehouse', color: 0x2F4F4F},
+    {pos: [-25, -25], height: 9, type: 'industrial', style: 'factory', color: 0x778899},
+    
+    // 混合区
+    {pos: [15, -15], height: 16, type: 'mixed', style: 'modern', color: 0x8B7D6B},
+    {pos: [25, -15], height: 18, type: 'mixed', style: 'glass', color: 0xA0522D},
+    {pos: [15, -25], height: 14, type: 'mixed', style: 'brick', color: 0xCD853F},
+    {pos: [25, -25], height: 17, type: 'mixed', style: 'modern', color: 0xD2691E}
   ];
   
-  carPositions.forEach((pos, i) => {
-    const car = createRealisticCar(carColors[i % carColors.length]);
-    car.position.set(pos.x, 0, pos.z);
-    car.lookAt(car.position.clone().add(pos.direction));
+  buildings.forEach(data => {
+    const building = createDetailedBuilding(data);
+    building.position.set(data.pos[0], 0, data.pos[1]);
+    scene.add(building);
+  });
+}
+
+function createDetailedBuilding(data) {
+  const building = new THREE.Group();
+  
+  const width = 5 + Math.random() * 2;
+  const depth = 5 + Math.random() * 2;
+  const height = data.height;
+  
+  // 主建筑体
+  const mainBuilding = createBuildingWithDetails(width, height, depth, data);
+  building.add(mainBuilding);
+  
+  // 根据类型添加特色
+  if (data.type === 'office') {
+    addOfficeDetails(building, width, height, depth);
+  } else if (data.type === 'residential') {
+    addResidentialDetails(building, width, height, depth);
+  } else if (data.type === 'industrial') {
+    addIndustrialDetails(building, width, height, depth);
+  }
+  
+  return building;
+}
+
+function createBuildingWithDetails(width, height, depth, data) {
+  const building = new THREE.Group();
+  
+  // 主体建筑
+  const mainGeometry = new THREE.BoxGeometry(width, height, depth);
+  const mainMaterial = new THREE.MeshBasicMaterial({ color: data.color });
+  const mainMesh = new THREE.Mesh(mainGeometry, mainMaterial);
+  mainMesh.position.y = height / 2;
+  mainMesh.castShadow = true;
+  mainMesh.receiveShadow = true;
+  building.add(mainMesh);
+  
+  // 建筑边缘装饰条
+  addBuildingEdges(building, width, height, depth);
+  
+  // 详细窗户系统
+  addDetailedWindows(building, width, height, depth, data.style);
+  
+  // 建筑入口
+  addBuildingEntrance(building, width, depth);
+  
+  // 屋顶装饰
+  if (height > 10) {
+    addRooftopDetails(building, width, height, depth);
+  }
+  
+  return building;
+}
+
+function addBuildingEdges(building, width, height, depth) {
+  const edgeMaterial = new THREE.MeshBasicMaterial({ color: 0x555555 });
+  
+  // 垂直边缘
+  const edgeWidth = 0.1;
+  const edges = [
+    // 前边缘
+    [width/2, height/2, depth/2 + edgeWidth/2, edgeWidth, height, edgeWidth],
+    [-width/2, height/2, depth/2 + edgeWidth/2, edgeWidth, height, edgeWidth],
+    // 后边缘
+    [width/2, height/2, -depth/2 - edgeWidth/2, edgeWidth, height, edgeWidth],
+    [-width/2, height/2, -depth/2 - edgeWidth/2, edgeWidth, height, edgeWidth]
+  ];
+  
+  edges.forEach(edge => {
+    const edgeGeometry = new THREE.BoxGeometry(edge[3], edge[4], edge[5]);
+    const edgeMesh = new THREE.Mesh(edgeGeometry, edgeMaterial);
+    edgeMesh.position.set(edge[0], edge[1], edge[2]);
+    building.add(edgeMesh);
+  });
+  
+  // 水平装饰条
+  const floors = Math.floor(height / 4);
+  for (let i = 1; i < floors; i++) {
+    const stripGeometry = new THREE.BoxGeometry(width + 0.2, 0.2, depth + 0.2);
+    const strip = new THREE.Mesh(stripGeometry, edgeMaterial);
+    strip.position.y = i * 4;
+    building.add(strip);
+  }
+}
+
+function addDetailedWindows(building, width, height, depth, style) {
+  const floors = Math.floor(height / 3);
+  
+  for (let floor = 1; floor < floors; floor++) {
+    const floorY = floor * 3;
+    
+    // 前面窗户
+    addWindowRow(building, width, floorY, depth/2 + 0.02, 0, style);
+    // 后面窗户
+    addWindowRow(building, width, floorY, -depth/2 - 0.02, Math.PI, style);
+    // 左侧窗户
+    addWindowRow(building, depth, floorY, 0, Math.PI/2, style, -width/2 - 0.02);
+    // 右侧窗户
+    addWindowRow(building, depth, floorY, 0, -Math.PI/2, style, width/2 + 0.02);
+  }
+}
+
+function addWindowRow(building, wallWidth, y, z, rotationY, style, x = 0) {
+  const windowCount = Math.floor(wallWidth / 1.5);
+  const windowMaterial = getWindowMaterial(style);
+  
+  for (let i = 0; i < windowCount; i++) {
+    const windowX = x || (i - windowCount/2 + 0.5) * 1.2;
+    const windowZ = x ? (i - windowCount/2 + 0.5) * 1.2 : z;
+    
+    // 主窗户
+    const windowGeometry = new THREE.PlaneGeometry(1, 1.8);
+    const window = new THREE.Mesh(windowGeometry, windowMaterial);
+    window.position.set(x || windowX, y, x ? windowZ : z);
+    window.rotation.y = rotationY;
+    building.add(window);
+    
+    // 窗框
+    const frameGeometry = new THREE.PlaneGeometry(1.1, 1.9);
+    const frameMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+    const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+    frame.position.set(x || windowX, y, x ? windowZ - 0.005 : z - 0.005);
+    frame.rotation.y = rotationY;
+    building.add(frame);
+    
+    // 窗台
+    if (Math.random() > 0.5) {
+      const sillGeometry = new THREE.BoxGeometry(1.2, 0.1, 0.3);
+      const sillMaterial = new THREE.MeshBasicMaterial({ color: 0x999999 });
+      const sill = new THREE.Mesh(sillGeometry, sillMaterial);
+      sill.position.set(x || windowX, y - 1, x ? windowZ + 0.1 : z + 0.1);
+      building.add(sill);
+    }
+  }
+}
+
+function getWindowMaterial(style) {
+  switch(style) {
+    case 'glass':
+      return new THREE.MeshBasicMaterial({ 
+        color: 0x87CEEB, 
+        transparent: true, 
+        opacity: 0.7 
+      });
+    case 'modern':
+      return new THREE.MeshBasicMaterial({ 
+        color: 0x4A90E2, 
+        transparent: true, 
+        opacity: 0.8 
+      });
+    case 'brick':
+      return new THREE.MeshBasicMaterial({ color: 0x2F4F4F });
+    default:
+      return new THREE.MeshBasicMaterial({ 
+        color: 0x6495ED, 
+        transparent: true, 
+        opacity: 0.6 
+      });
+  }
+}
+
+function addBuildingEntrance(building, width, depth) {
+  // 入口门厅
+  const entranceGeometry = new THREE.BoxGeometry(width * 0.6, 3.5, 1);
+  const entranceMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+  const entrance = new THREE.Mesh(entranceGeometry, entranceMaterial);
+  entrance.position.set(0, 1.75, depth/2 + 0.5);
+  entrance.castShadow = true;
+  building.add(entrance);
+  
+  // 旋转门
+  const doorGeometry = new THREE.BoxGeometry(2, 2.8, 0.1);
+  const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
+  const door = new THREE.Mesh(doorGeometry, doorMaterial);
+  door.position.set(0, 1.4, depth/2 + 1.05);
+  building.add(door);
+  
+  // 门上方装饰
+  const awningGeometry = new THREE.BoxGeometry(width * 0.8, 0.3, 1.5);
+  const awningMaterial = new THREE.MeshBasicMaterial({ color: 0x4682B4 });
+  const awning = new THREE.Mesh(awningGeometry, awningMaterial);
+  awning.position.set(0, 3.5, depth/2 + 0.8);
+  building.add(awning);
+  
+  // 台阶
+  for (let i = 0; i < 3; i++) {
+    const stepGeometry = new THREE.BoxGeometry(width * 0.8, 0.15, 0.3);
+    const stepMaterial = new THREE.MeshBasicMaterial({ color: 0x708090 });
+    const step = new THREE.Mesh(stepGeometry, stepMaterial);
+    step.position.set(0, i * 0.15 + 0.075, depth/2 + 1.2 + i * 0.1);
+    building.add(step);
+  }
+}
+
+function addRooftopDetails(building, width, height, depth) {
+  // 空调设备
+  const acCount = 2 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < acCount; i++) {
+    const acGeometry = new THREE.BoxGeometry(1.2, 0.8, 0.8);
+    const acMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+    const ac = new THREE.Mesh(acGeometry, acMaterial);
+    ac.position.set(
+      (Math.random() - 0.5) * width * 0.6,
+      height + 0.4,
+      (Math.random() - 0.5) * depth * 0.6
+    );
+    building.add(ac);
+  }
+  
+  // 水箱
+  if (Math.random() > 0.6) {
+    const tankGeometry = new THREE.CylinderGeometry(0.8, 0.8, 1.5);
+    const tankMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+    const tank = new THREE.Mesh(tankGeometry, tankMaterial);
+    tank.position.set(
+      (Math.random() - 0.5) * width * 0.4,
+      height + 0.75,
+      (Math.random() - 0.5) * depth * 0.4
+    );
+    building.add(tank);
+  }
+  
+  // 通风设备
+  const ventCount = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < ventCount; i++) {
+    const ventGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2);
+    const ventMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 });
+    const vent = new THREE.Mesh(ventGeometry, ventMaterial);
+    vent.position.set(
+      (Math.random() - 0.5) * width * 0.8,
+      height + 0.6,
+      (Math.random() - 0.5) * depth * 0.8
+    );
+    building.add(vent);
+  }
+}
+
+function addOfficeDetails(building, width, height, depth) {
+  // 公司标志牌
+  const signGeometry = new THREE.BoxGeometry(width * 0.8, 0.8, 0.1);
+  const signMaterial = new THREE.MeshBasicMaterial({ color: 0x000080 });
+  const sign = new THREE.Mesh(signGeometry, signMaterial);
+  sign.position.set(0, height * 0.9, depth/2 + 0.1);
+  building.add(sign);
+  
+  // 办公室照明（窗户发光效果）
+  if (Math.random() > 0.3) {
+    const lightGeometry = new THREE.PlaneGeometry(width * 0.9, 1.5);
+    const lightMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0xFFFFAA, 
+      transparent: true, 
+      opacity: 0.3 
+    });
+    const light = new THREE.Mesh(lightGeometry, lightMaterial);
+    light.position.set(0, height * 0.7, depth/2 + 0.03);
+    building.add(light);
+  }
+}
+
+function addResidentialDetails(building, width, height, depth) {
+  const floors = Math.floor(height / 3);
+  
+  // 阳台
+  for (let floor = 2; floor < floors; floor++) {
+    if (Math.random() > 0.4) {
+      const balconyGeometry = new THREE.BoxGeometry(width * 0.4, 0.1, 1);
+      const balconyMaterial = new THREE.MeshBasicMaterial({ color: 0x999999 });
+      const balcony = new THREE.Mesh(balconyGeometry, balconyMaterial);
+      balcony.position.set(0, floor * 3, depth/2 + 0.5);
+      building.add(balcony);
+      
+      // 阳台护栏
+      const railingGeometry = new THREE.BoxGeometry(width * 0.4, 1, 0.05);
+      const railingMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+      const railing = new THREE.Mesh(railingGeometry, railingMaterial);
+      railing.position.set(0, floor * 3 + 0.5, depth/2 + 1);
+      building.add(railing);
+    }
+  }
+  
+  // 空调外机
+  for (let floor = 1; floor < floors; floor++) {
+    if (Math.random() > 0.5) {
+      const acGeometry = new THREE.BoxGeometry(0.8, 0.5, 0.3);
+      const acMaterial = new THREE.MeshBasicMaterial({ color: 0x777777 });
+      const ac = new THREE.Mesh(acGeometry, acMaterial);
+      ac.position.set(
+        (Math.random() - 0.5) * width * 0.8,
+        floor * 3 - 0.5,
+        depth/2 + 0.4
+      );
+      building.add(ac);
+    }
+  }
+}
+
+function addIndustrialDetails(building, width, height, depth) {
+  // 烟囱
+  if (Math.random() > 0.5) {
+    const chimneyGeometry = new THREE.CylinderGeometry(0.3, 0.4, height * 0.8);
+    const chimneyMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+    const chimney = new THREE.Mesh(chimneyGeometry, chimneyMaterial);
+    chimney.position.set(width * 0.3, height + height * 0.4, depth * 0.3);
+    building.add(chimney);
+  }
+  
+  // 工业管道
+  const pipeCount = 2 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < pipeCount; i++) {
+    const pipeGeometry = new THREE.CylinderGeometry(0.1, 0.1, height * 0.6);
+    const pipeMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+    const pipe = new THREE.Mesh(pipeGeometry, pipeMaterial);
+    pipe.position.set(
+      (Math.random() - 0.5) * width * 0.6,
+      height * 0.7,
+      (Math.random() - 0.5) * depth * 0.6
+    );
+    building.add(pipe);
+  }
+  
+  // 大型通风设备
+  const ventGeometry = new THREE.BoxGeometry(2, 1, 1);
+  const ventMaterial = new THREE.MeshBasicMaterial({ color: 0x555555 });
+  const vent = new THREE.Mesh(ventGeometry, ventMaterial);
+  vent.position.set(0, height + 0.5, 0);
+  building.add(vent);
+}
+
+// 继续实现其他函数...
+function createDetailedSpecialBuildings() {
+  // 超高摩天大厦
+  const skyscraper = createDetailedSkyscraper();
+  skyscraper.position.set(35, 0, 35);
+  scene.add(skyscraper);
+  
+  // 学校
+  const school = createDetailedSchool();
+  school.position.set(-35, 0, -35);
+  scene.add(school);
+  
+  // 博物馆
+  const museum = createDetailedMuseum();
+  museum.position.set(-35, 0, 35);
+  scene.add(museum);
+}
+
+function createDetailedSkyscraper() {
+  const skyscraper = new THREE.Group();
+  const height = 50;
+  
+  // 主塔
+  const mainTower = new THREE.Mesh(
+    new THREE.BoxGeometry(6, height, 6),
+    new THREE.MeshBasicMaterial({ color: 0xC0C0C0 })
+  );
+  mainTower.position.y = height / 2;
+  skyscraper.add(mainTower);
+  
+  // 玻璃幕墙效果
+  const floors = Math.floor(height / 2.5);
+  for (let floor = 0; floor < floors; floor++) {
+    for (let side = 0; side < 4; side++) {
+      const glassPanel = new THREE.Mesh(
+        new THREE.PlaneGeometry(5.8, 2.3),
+        new THREE.MeshBasicMaterial({ 
+          color: 0x4A90E2, 
+          transparent: true, 
+          opacity: 0.7 
+        })
+      );
+      
+      const y = floor * 2.5 + 1.25;
+      if (side === 0) {
+        glassPanel.position.set(0, y, 3.01);
+      } else if (side === 1) {
+        glassPanel.position.set(3.01, y, 0);
+        glassPanel.rotation.y = -Math.PI / 2;
+      } else if (side === 2) {
+        glassPanel.position.set(0, y, -3.01);
+        glassPanel.rotation.y = Math.PI;
+      } else {
+        glassPanel.position.set(-3.01, y, 0);
+        glassPanel.rotation.y = Math.PI / 2;
+      }
+      skyscraper.add(glassPanel);
+      
+      // 窗框
+      const frameGeometry = new THREE.PlaneGeometry(6, 2.5);
+      const frameMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+      const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+      frame.position.copy(glassPanel.position);
+      frame.rotation.copy(glassPanel.rotation);
+      frame.position.addScaledVector(
+        new THREE.Vector3(0, 0, -0.01).applyEuler(frame.rotation), 1
+      );
+      skyscraper.add(frame);
+    }
+  }
+  
+  // 顶部装饰
+  const crown = new THREE.Mesh(
+    new THREE.ConeGeometry(3.5, 4, 8),
+    new THREE.MeshBasicMaterial({ color: 0x888888 })
+  );
+  crown.position.y = height + 2;
+  skyscraper.add(crown);
+  
+  // 天线
+  const antenna = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.1, 0.1, 8),
+    new THREE.MeshBasicMaterial({ color: 0xFF0000 })
+  );
+  antenna.position.y = height + 8;
+  skyscraper.add(antenna);
+  
+  return skyscraper;
+}
+
+function createDetailedSchool() {
+  const school = new THREE.Group();
+  
+  // 主教学楼
+  const mainBuilding = new THREE.Mesh(
+    new THREE.BoxGeometry(12, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xDEB887 })
+  );
+  mainBuilding.position.y = 4;
+  school.add(mainBuilding);
+  
+  // 学校门厅
+  const entrance = new THREE.Mesh(
+    new THREE.BoxGeometry(4, 10, 2),
+    new THREE.MeshBasicMaterial({ color: 0xCD853F })
+  );
+  entrance.position.set(0, 5, 4);
+  school.add(entrance);
+  
+  // 红色屋顶
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(8, 3, 4),
+    new THREE.MeshBasicMaterial({ color: 0xDC143C })
+  );
+  roof.rotation.y = Math.PI / 4;
+  roof.position.y = 10.5;
+  school.add(roof);
+  
+  // 教室窗户
+  for (let i = 0; i < 6; i++) {
+    const window = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 2),
+      new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+    );
+    window.position.set((i - 2.5) * 1.8, 5, 3.01);
+    school.add(window);
+  }
+  
+  // 学校标志
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 1),
+    new THREE.MeshBasicMaterial({ color: 0x000080 })
+  );
+  sign.position.set(0, 8, 4.1);
+  school.add(sign);
+  
+  // 操场
+  const playground = new THREE.Mesh(
+    new THREE.PlaneGeometry(20, 15),
+    new THREE.MeshBasicMaterial({ color: 0x32CD32 })
+  );
+  playground.rotation.x = -Math.PI / 2;
+  playground.position.set(0, 0.01, -12);
+  school.add(playground);
+  
+  // 篮球场
+  const court = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 12),
+    new THREE.MeshBasicMaterial({ color: 0xFF6347 })
+  );
+  court.rotation.x = -Math.PI / 2;
+  court.position.set(8, 0.02, -12);
+  school.add(court);
+  
+  return school;
+}
+
+function createDetailedMuseum() {
+  const museum = new THREE.Group();
+  
+  // 主体圆形建筑
+  const main = new THREE.Mesh(
+    new THREE.CylinderGeometry(8, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xF5F5DC })
+  );
+  main.position.y = 3;
+  museum.add(main);
+  
+  // 蓝色穹顶
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(8, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0x4682B4 })
+  );
+  dome.position.y = 6;
+  museum.add(dome);
+  
+  // 古典柱子
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    
+    // 柱身
+    const column = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.4, 6),
+      new THREE.MeshBasicMaterial({ color: 0xF5F5DC })
+    );
+    column.position.set(Math.cos(angle) * 7, 3, Math.sin(angle) * 7);
+    museum.add(column);
+    
+    // 柱头
+    const capital = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.6, 0.4, 0.5),
+      new THREE.MeshBasicMaterial({ color: 0xE6E6FA })
+    );
+    capital.position.set(Math.cos(angle) * 7, 6.25, Math.sin(angle) * 7);
+    museum.add(capital);
+    
+    // 柱底座
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.6, 0.5),
+      new THREE.MeshBasicMaterial({ color: 0xE6E6FA })
+    );
+    base.position.set(Math.cos(angle) * 7, 0.25, Math.sin(angle) * 7);
+    museum.add(base);
+  }
+  
+  // 入口门厅
+  const entrance = new THREE.Mesh(
+    new THREE.BoxGeometry(6, 5, 2),
+    new THREE.MeshBasicMaterial({ color: 0x8B4513 })
+  );
+  entrance.position.set(0, 2.5, 9);
+  museum.add(entrance);
+  
+  // 台阶
+  for (let i = 0; i < 5; i++) {
+    const step = new THREE.Mesh(
+      new THREE.CylinderGeometry(9 + i * 0.5, 9 + (i + 1) * 0.5, 0.3),
+      new THREE.MeshBasicMaterial({ color: 0xD3D3D3 })
+    );
+    step.position.y = i * 0.3 + 0.15;
+    museum.add(step);
+  }
+  
+  return museum;
+}
+
+// 天空列车系统
+function createSkyTrain() {
+  console.log('创建详细天空列车系统...');
+  
+  // 高架轨道 - 移动到侧面，不在道路上
+  const trackY = 15;
+  const trackZ = 20; // 移到侧面
+  
+  // 主轨道梁
+  const track = new THREE.Mesh(
+    new THREE.BoxGeometry(100, 0.8, 3),
+    new THREE.MeshBasicMaterial({ color: 0x666666 })
+  );
+  track.position.set(0, trackY, trackZ);
+  scene.add(track);
+  
+  // 轨道边缘
+  const trackEdge1 = new THREE.Mesh(
+    new THREE.BoxGeometry(100, 0.2, 0.3),
+    new THREE.MeshBasicMaterial({ color: 0x444444 })
+  );
+  trackEdge1.position.set(0, trackY + 0.5, trackZ + 1.2);
+  scene.add(trackEdge1);
+  
+  const trackEdge2 = new THREE.Mesh(
+    new THREE.BoxGeometry(100, 0.2, 0.3),
+    new THREE.MeshBasicMaterial({ color: 0x444444 })
+  );
+  trackEdge2.position.set(0, trackY + 0.5, trackZ - 1.2);
+  scene.add(trackEdge2);
+  
+  // 支撑柱 - 更多支撑柱
+  const supportPositions = [-40, -25, -10, 5, 20, 35];
+  supportPositions.forEach(x => {
+    const support = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.6, 1, trackY),
+      new THREE.MeshBasicMaterial({ color: 0x808080 })
+    );
+    support.position.set(x, trackY / 2, trackZ);
+    scene.add(support);
+    
+    // 支撑架斜撑
+    const brace1 = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.2, 8),
+      new THREE.MeshBasicMaterial({ color: 0x666666 })
+    );
+    brace1.position.set(x - 2, trackY - 3, trackZ);
+    brace1.rotation.z = Math.PI / 6;
+    scene.add(brace1);
+    
+    const brace2 = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.2, 8),
+      new THREE.MeshBasicMaterial({ color: 0x666666 })
+    );
+    brace2.position.set(x + 2, trackY - 3, trackZ);
+    brace2.rotation.z = -Math.PI / 6;
+    scene.add(brace2);
+  });
+  
+  // 创建真实的天空列车
+  const train = createRealisticSkyTrain();
+  train.position.set(-40, trackY + 2.5, trackZ);
+  scene.add(train);
+  
+  window.skyTrainGroup = train;
+  window.skyTrainTrackZ = trackZ;
+  
+  console.log('天空列车系统创建完成');
+}
+
+function createRealisticSkyTrain() {
+  const train = new THREE.Group();
+  
+  // 创建三节车厢
+  for (let carIndex = 0; carIndex < 3; carIndex++) {
+    const car = new THREE.Group();
+    const carX = carIndex * 12;
+    
+    // 主车身 - 更流线型
+    const bodyGeometry = new THREE.BoxGeometry(10, 3, 3);
+    const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x0066FF });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.set(carX, 0, 0);
+    car.add(body);
+    
+    // 车头/车尾流线型设计
+    if (carIndex === 0) {
+      // 前车头
+      const noseGeometry = new THREE.ConeGeometry(1.5, 3, 8);
+      const noseMaterial = new THREE.MeshBasicMaterial({ color: 0x004499 });
+      const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+      nose.rotation.z = -Math.PI / 2;
+      nose.position.set(carX - 6.5, 0, 0);
+      car.add(nose);
+    } else if (carIndex === 2) {
+      // 后车尾
+      const tailGeometry = new THREE.ConeGeometry(1.5, 3, 8);
+      const tailMaterial = new THREE.MeshBasicMaterial({ color: 0x004499 });
+      const tail = new THREE.Mesh(tailGeometry, tailMaterial);
+      tail.rotation.z = Math.PI / 2;
+      tail.position.set(carX + 6.5, 0, 0);
+      car.add(tail);
+    }
+    
+    // 车厢连接器
+    if (carIndex > 0) {
+      const connector = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 0.8, 1),
+        new THREE.MeshBasicMaterial({ color: 0x333333 })
+      );
+      connector.rotation.z = Math.PI / 2;
+      connector.position.set(carX - 6, 0, 0);
+      car.add(connector);
+    }
+    
+    // 车窗 - 大面积玻璃窗
+    const windowPositions = [
+      [-3, 0.5, 1.51], [-1, 0.5, 1.51], [1, 0.5, 1.51], [3, 0.5, 1.51], // 右侧窗
+      [-3, 0.5, -1.51], [-1, 0.5, -1.51], [1, 0.5, -1.51], [3, 0.5, -1.51] // 左侧窗
+    ];
+    
+    windowPositions.forEach((pos, windowIndex) => {
+      const windowGeometry = new THREE.PlaneGeometry(1.5, 2);
+      const windowMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x87CEEB, 
+        transparent: true, 
+        opacity: 0.8 
+      });
+      const window = new THREE.Mesh(windowGeometry, windowMaterial);
+      window.position.set(carX + pos[0], pos[1], pos[2]);
+      
+      if (pos[2] > 0) {
+        window.rotation.y = 0;
+      } else {
+        window.rotation.y = Math.PI;
+      }
+      car.add(window);
+      
+      // 窗框
+      const frameGeometry = new THREE.PlaneGeometry(1.6, 2.1);
+      const frameMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+      const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+      frame.position.set(carX + pos[0], pos[1], pos[2] - 0.01);
+      frame.rotation.copy(window.rotation);
+      car.add(frame);
+    });
+    
+    // 车厢内的乘客
+    createTrainPassengers(car, carX);
+    
+    // 车轮 - 在轨道下方
+    const wheelPositions = [[-3, -2, 1], [-3, -2, -1], [3, -2, 1], [3, -2, -1]];
+    wheelPositions.forEach(pos => {
+      const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3);
+      const wheelMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+      const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+      wheel.position.set(carX + pos[0], pos[1], pos[2]);
+      wheel.rotation.x = Math.PI / 2;
+      car.add(wheel);
+    });
+    
+    // 车门
+    const doorGeometry = new THREE.PlaneGeometry(1.5, 2.5);
+    const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+    const rightDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+    rightDoor.position.set(carX, -0.2, 1.52);
+    car.add(rightDoor);
+    
+    const leftDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+    leftDoor.position.set(carX, -0.2, -1.52);
+    leftDoor.rotation.y = Math.PI;
+    car.add(leftDoor);
+    
+    train.add(car);
+  }
+  
+  return train;
+}
+
+function createTrainPassengers(car, carX) {
+  // 在每节车厢内添加乘客
+  const passengerCount = 4 + Math.floor(Math.random() * 4);
+  
+  for (let i = 0; i < passengerCount; i++) {
+    const passenger = new THREE.Group();
+    
+    // 乘客身体
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.15, 0.6),
+      new THREE.MeshBasicMaterial({ 
+        color: [0x1E3A8A, 0x7C2D12, 0x166534, 0x92400E][i % 4] 
+      })
+    );
+    body.position.y = 0.3;
+    passenger.add(body);
+    
+    // 乘客头部
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.1),
+      new THREE.MeshBasicMaterial({ 
+        color: [0xFFDBB0, 0xE6A57E, 0xD4955C, 0xA67C52][i % 4] 
+      })
+    );
+    head.position.y = 0.7;
+    passenger.add(head);
+    
+    // 随机座位位置
+    const seatX = carX + (Math.random() - 0.5) * 6;
+    const seatZ = (Math.random() > 0.5) ? 0.8 : -0.8;
+    
+    passenger.position.set(seatX, -0.8, seatZ);
+    car.add(passenger);
+  }
+}
+
+function createSubway() {
+  // 地铁站入口
+  [{x: 12, z: 12}, {x: -12, z: 12}, {x: 12, z: -12}, {x: -12, z: -12}].forEach(pos => {
+    const entrance = new THREE.Mesh(
+      new THREE.BoxGeometry(4, 2, 4),
+      new THREE.MeshBasicMaterial({ color: 0x4B0082 })
+    );
+    entrance.position.set(pos.x, 1, pos.z);
+    scene.add(entrance);
+  });
+}
+
+function createSkyWheel() {
+  console.log('创建真实摩天轮...');
+  const skyWheel = new THREE.Group();
+  const wheelRadius = 15;
+  const wheelHeight = 20;
+  
+  // 主轮框架
+  const wheel = new THREE.Mesh(
+    new THREE.TorusGeometry(wheelRadius, 0.8, 16, 100),
+    new THREE.MeshBasicMaterial({ color: 0xC0C0C0 })
+  );
+  wheel.position.y = wheelHeight;
+  wheel.rotation.x = Math.PI / 2;
+  skyWheel.add(wheel);
+  
+  // 轮辐
+  for (let i = 0; i < 24; i++) {
+    const angle = (i / 24) * Math.PI * 2;
+    const spoke = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, wheelRadius),
+      new THREE.MeshBasicMaterial({ color: 0x888888 })
+    );
+    spoke.position.set(
+      Math.cos(angle) * wheelRadius / 2,
+      wheelHeight,
+      Math.sin(angle) * wheelRadius / 2
+    );
+    spoke.rotation.z = angle + Math.PI / 2;
+    skyWheel.add(spoke);
+  }
+  
+  // 支撑结构
+  const support1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(1, 1.5, wheelHeight),
+    new THREE.MeshBasicMaterial({ color: 0x708090 })
+  );
+  support1.position.set(-8, wheelHeight / 2, 0);
+  skyWheel.add(support1);
+  
+  const support2 = new THREE.Mesh(
+    new THREE.CylinderGeometry(1, 1.5, wheelHeight),
+    new THREE.MeshBasicMaterial({ color: 0x708090 })
+  );
+  support2.position.set(8, wheelHeight / 2, 0);
+  skyWheel.add(support2);
+  
+  // 支撑架横梁
+  const crossBeam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.5, 0.5, 16),
+    new THREE.MeshBasicMaterial({ color: 0x666666 })
+  );
+  crossBeam.rotation.z = Math.PI / 2;
+  crossBeam.position.y = wheelHeight - 3;
+  skyWheel.add(crossBeam);
+  
+  // 创建真实的摩天轮座舱
+  const cabins = [];
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2;
+    const cabin = createRealisticCabin();
+    
+    const cabinX = Math.cos(angle) * wheelRadius;
+    const cabinY = wheelHeight + Math.sin(angle) * wheelRadius;
+    cabin.position.set(cabinX, cabinY, 0);
+    
+    // 添加连接臂将座舱连接到轮子
+    const connectionArm = new THREE.Mesh(
+      new THREE.BoxGeometry(2, 0.3, 0.3),
+      new THREE.MeshBasicMaterial({ color: 0x666666 })
+    );
+    connectionArm.position.set(cabinX * 0.7, cabinY, 0);
+    connectionArm.rotation.z = angle;
+    skyWheel.add(connectionArm);
+    
+    // 座舱支撑架
+    const support = new THREE.Mesh(
+      new THREE.BoxGeometry(0.2, 3, 0.2),
+      new THREE.MeshBasicMaterial({ color: 0x444444 })
+    );
+    support.position.set(cabinX * 0.9, cabinY + 1.5, 0);
+    skyWheel.add(support);
+    
+    skyWheel.add(cabin);
+    cabins.push(cabin);
+  }
+  
+  skyWheel.position.set(35, 0, -35);
+  scene.add(skyWheel);
+  
+  window.skyWheelGroup = skyWheel;
+  window.skyWheelCabins = cabins;
+  window.skyWheelAngle = 0;
+  
+  console.log('摩天轮创建完成');
+}
+
+function createRealisticCabin() {
+  const cabin = new THREE.Group();
+  
+  // 圆形底座 - 更像真实的摩天轮座舱
+  const floorGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.15, 16);
+  const floor = new THREE.Mesh(
+    floorGeometry,
+    new THREE.MeshBasicMaterial({ color: 0x666666 })
+  );
+  floor.position.y = -1;
+  cabin.add(floor);
+  
+  // 圆形玻璃座舱主体
+  const cabinMain = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.3, 1.3, 2.5, 16, 1, true),
+    new THREE.MeshBasicMaterial({ 
+      color: 0x87CEEB,
+      transparent: true,
+      opacity: 0.7,
+      side: THREE.DoubleSide
+    })
+  );
+  cabinMain.position.y = 0.25;
+  cabin.add(cabinMain);
+  
+  // 座舱顶部 - 圆形
+  const roofGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.2, 16);
+  const roof = new THREE.Mesh(
+    roofGeometry,
+    new THREE.MeshBasicMaterial({ color: 0x888888 })
+  );
+  roof.position.y = 1.6;
+  cabin.add(roof);
+  
+  // 垂直窗框
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    const frameGeometry = new THREE.BoxGeometry(0.05, 2.5, 0.05);
+    const frame = new THREE.Mesh(
+      frameGeometry,
+      new THREE.MeshBasicMaterial({ color: 0x333333 })
+    );
+    frame.position.set(
+      Math.cos(angle) * 1.35,
+      0.25,
+      Math.sin(angle) * 1.35
+    );
+    cabin.add(frame);
+  }
+  
+  // 水平窗框
+  const topFrame = new THREE.Mesh(
+    new THREE.TorusGeometry(1.35, 0.04, 8, 16),
+    new THREE.MeshBasicMaterial({ color: 0x333333 })
+  );
+  topFrame.position.y = 1.2;
+  topFrame.rotation.x = Math.PI / 2;
+  cabin.add(topFrame);
+  
+  const bottomFrame = new THREE.Mesh(
+    new THREE.TorusGeometry(1.35, 0.04, 8, 16),
+    new THREE.MeshBasicMaterial({ color: 0x333333 })
+  );
+  bottomFrame.position.y = -0.7;
+  bottomFrame.rotation.x = Math.PI / 2;
+  cabin.add(bottomFrame);
+  
+  // 座椅 - 环形排列
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const seat = new THREE.Mesh(
+      new THREE.BoxGeometry(0.4, 0.4, 0.4),
+      new THREE.MeshBasicMaterial({ color: 0xDC143C })
+    );
+    seat.position.set(
+      Math.cos(angle) * 0.7,
+      -0.5,
+      Math.sin(angle) * 0.7
+    );
+    cabin.add(seat);
+    
+    // 座椅靠背
+    const backrest = new THREE.Mesh(
+      new THREE.BoxGeometry(0.4, 0.6, 0.05),
+      new THREE.MeshBasicMaterial({ color: 0xDC143C })
+    );
+    backrest.position.set(
+      Math.cos(angle) * 0.9,
+      -0.2,
+      Math.sin(angle) * 0.9
+    );
+    backrest.lookAt(0, backrest.position.y, 0);
+    cabin.add(backrest);
+  }
+  
+  // 简化悬挂系统 - 主要悬挂点
+  const mainSuspension = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 1.5),
+    new THREE.MeshBasicMaterial({ color: 0x444444 })
+  );
+  mainSuspension.position.set(0, 2.2, 0);
+  cabin.add(mainSuspension);
+  
+  // 顶部连接环
+  const connectionRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.2, 0.03, 8, 16),
+    new THREE.MeshBasicMaterial({ color: 0x222222 })
+  );
+  connectionRing.position.set(0, 2.8, 0);
+  connectionRing.rotation.x = Math.PI / 2;
+  cabin.add(connectionRing);
+  
+  // 门
+  const doorGeometry = new THREE.PlaneGeometry(0.8, 1.8);
+  const doorMaterial = new THREE.MeshBasicMaterial({ 
+    color: 0x666666,
+    transparent: true,
+    opacity: 0.9
+  });
+  const door = new THREE.Mesh(doorGeometry, doorMaterial);
+  door.position.set(1.31, 0.2, 0);
+  cabin.add(door);
+  
+  // 门把手
+  const doorHandle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.02, 0.02, 0.15),
+    new THREE.MeshBasicMaterial({ color: 0xFFD700 })
+  );
+  doorHandle.position.set(1.32, 0.2, 0.3);
+  doorHandle.rotation.z = Math.PI / 2;
+  cabin.add(doorHandle);
+  
+  return cabin;
+}
+
+function createRealisticCars() {
+  console.log('创建真实汽车...');
+  const positions = [
+    {x: 10, z: 0, dir: [1,0,0], rot: 0, type: 'sedan'},
+    {x: -10, z: 0, dir: [-1,0,0], rot: Math.PI, type: 'suv'},
+    {x: 0, z: 10, dir: [0,0,1], rot: Math.PI/2, type: 'hatchback'},
+    {x: 0, z: -10, dir: [0,0,-1], rot: -Math.PI/2, type: 'truck'}
+  ];
+  
+  positions.forEach((pos, i) => {
+    const car = createDetailedCar(i, pos.type);
+    car.position.set(pos.x, 0.5, pos.z);
+    car.rotation.y = pos.rot;
     scene.add(car);
     
     cars.push({
       object: car,
-      direction: pos.direction.normalize(),
-      speed: 0.1 + Math.random() * 0.05,
+      direction: new THREE.Vector3(...pos.dir),
+      speed: 0.08 + Math.random() * 0.04,
       wheels: car.userData.wheels
     });
   });
+  
+  console.log(`创建了 ${positions.length} 辆真实汽车`);
 }
 
-function createRealisticCar(color) {
+function createDetailedCar(index, type) {
   const car = new THREE.Group();
   
-  // 车身尺寸
-  const carLength = 4;
-  const carWidth = 1.8;
-  const carHeight = 1.4;
+  // 汽车颜色
+  const carColors = [0x000000, 0xFFFFFF, 0x800000, 0x000080, 0x008000, 0x4B0082];
+  const color = carColors[index % carColors.length];
   
-  // 主车身
+  let carWidth, carHeight, carLength;
+  
+  // 根据车型设置尺寸
+  switch(type) {
+    case 'sedan':
+      carWidth = 1.6; carHeight = 1.2; carLength = 4.2;
+      break;
+    case 'suv':
+      carWidth = 1.8; carHeight = 1.8; carLength = 4.5;
+      break;
+    case 'hatchback':
+      carWidth = 1.5; carHeight = 1.3; carLength = 3.8;
+      break;
+    case 'truck':
+      carWidth = 1.9; carHeight = 2.2; carLength = 5.5;
+      break;
+    default:
+      carWidth = 1.6; carHeight = 1.2; carLength = 4.2;
+  }
+  
+  // 主车身 - 更流线型
   const bodyGeometry = new THREE.BoxGeometry(carLength, carHeight, carWidth);
   const bodyMaterial = new THREE.MeshBasicMaterial({ color: color });
   const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
@@ -575,26 +1493,42 @@ function createRealisticCar(color) {
   body.castShadow = true;
   car.add(body);
   
-  // 车轮 (4个)
-  const wheels = [];
-  const wheelPositions = [
-    [carLength * 0.35, -0.3, carWidth * 0.45],   // 右前轮
-    [carLength * 0.35, -0.3, -carWidth * 0.45],  // 左前轮
-    [-carLength * 0.35, -0.3, carWidth * 0.45],  // 右后轮
-    [-carLength * 0.35, -0.3, -carWidth * 0.45]  // 左后轮
-  ];
+  // 车前保险杠
+  const frontBumper = new THREE.Mesh(
+    new THREE.BoxGeometry(carLength + 0.3, 0.3, carWidth + 0.1),
+    new THREE.MeshBasicMaterial({ color: color })
+  );
+  frontBumper.position.y = 0.2;
+  car.add(frontBumper);
   
-  const wheelRadius = 0.3;
-  const wheelWidth = 0.2;
+  // 车顶
+  if (type !== 'truck') {
+    const roofWidth = carWidth * 0.85;
+    const roofLength = carLength * 0.65;
+    const roofGeometry = new THREE.BoxGeometry(roofLength, carHeight * 0.4, roofWidth);
+    const roof = new THREE.Mesh(roofGeometry, bodyMaterial);
+    roof.position.y = carHeight * 0.9;
+    car.add(roof);
+  }
+  
+  // 车轮
+  const wheelRadius = type === 'truck' ? 0.4 : 0.35;
+  const wheelWidth = 0.25;
+  const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth);
   const wheelMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
   const rimMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 });
   
-  wheelPositions.forEach(pos => {
+  const wheelPositions = [
+    [carLength * 0.35, wheelRadius, carWidth * 0.5 + wheelWidth * 0.5],   // 前右
+    [carLength * 0.35, wheelRadius, -carWidth * 0.5 - wheelWidth * 0.5],  // 前左
+    [-carLength * 0.35, wheelRadius, carWidth * 0.5 + wheelWidth * 0.5],  // 后右
+    [-carLength * 0.35, wheelRadius, -carWidth * 0.5 - wheelWidth * 0.5]  // 后左
+  ];
+  
+  const wheels = [];
+  wheelPositions.forEach((pos, wheelIndex) => {
     // 轮胎
-    const wheel = new THREE.Mesh(
-      new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth),
-      wheelMaterial
-    );
+    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
     wheel.rotation.z = Math.PI / 2;
     wheel.position.set(pos[0], pos[1], pos[2]);
     wheel.castShadow = true;
@@ -734,132 +1668,166 @@ function createDetailedPeople() {
     people.push({
       object: person,
       direction: new THREE.Vector3(
-        Math.sin(person.rotation.y),
+        Math.sin(person.rotation.y) + (Math.random()-0.5) * 0.5,
         0,
-        Math.cos(person.rotation.y)
-      ),
-      speed: 0.02 + Math.random() * 0.02,
+        Math.cos(person.rotation.y) + (Math.random()-0.5) * 0.5
+      ).normalize(),
+      speed: 0.015 + Math.random() * 0.015,
       walkPhase: Math.random() * Math.PI * 2,
       turnTimer: Math.random() * 300
     });
   });
   
-  console.log(`创建了 ${streetPositions.length} 个街道行人`);
+  // 办公楼内的人员
+  createOfficePeople();
   
-  // 创建办公楼内的人员
-  createOfficeBuildingPeople();
+  console.log(`创建了 ${streetPositions.length} 个街道行人`);
 }
 
-function createDetailedPerson(id) {
+function createDetailedPerson(index) {
   const person = new THREE.Group();
   
+  // 多样化的外观
+  const skinColors = [0xFFDBB0, 0xE6A57E, 0xD4955C, 0xA67C52, 0x8B4513];
+  const shirtColors = [0x1E3A8A, 0x7C2D12, 0x166534, 0x92400E, 0x6B21A8, 0x0F766E, 0x374151];
+  const pantsColors = [0x000080, 0x2F4F4F, 0x8B4513, 0x556B2F, 0x800000, 0x000000];
+  
+  const skinColor = skinColors[index % skinColors.length];
+  const shirtColor = shirtColors[index % shirtColors.length];
+  const pantsColor = pantsColors[index % pantsColors.length];
+  
   // 身体
-  const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.3, 0.4, 1.6),
-    new THREE.MeshBasicMaterial({ color: [0x4169E1, 0x32CD32, 0xFF6347, 0x8A2BE2, 0xFF1493][id % 5] })
-  );
-  body.position.y = 0.8;
+  const bodyGeometry = new THREE.CylinderGeometry(0.12, 0.16, 0.6);
+  const bodyMaterial = new THREE.MeshBasicMaterial({ color: shirtColor });
+  const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+  body.position.y = 0.7;
   body.castShadow = true;
   person.add(body);
   
-  // 头
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.25),
-    new THREE.MeshBasicMaterial({ color: 0xFFDBC1 })
-  );
-  head.position.y = 2;
+  // 头部
+  const headGeometry = new THREE.SphereGeometry(0.1);
+  const headMaterial = new THREE.MeshBasicMaterial({ color: skinColor });
+  const head = new THREE.Mesh(headGeometry, headMaterial);
+  head.position.y = 1.1;
   head.castShadow = true;
   person.add(head);
   
-  // 腿 (可动画)
-  const leftLeg = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.1, 0.12, 0.8),
-    new THREE.MeshBasicMaterial({ color: 0x000080 })
-  );
-  leftLeg.position.set(0.15, 0.4, 0);
+  // 腿部
+  const legGeometry = new THREE.CylinderGeometry(0.04, 0.05, 0.4);
+  const legMaterial = new THREE.MeshBasicMaterial({ color: pantsColor });
+  
+  const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+  leftLeg.position.set(-0.06, 0.2, 0);
   leftLeg.castShadow = true;
   person.add(leftLeg);
   
-  const rightLeg = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.1, 0.12, 0.8),
-    new THREE.MeshBasicMaterial({ color: 0x000080 })
-  );
-  rightLeg.position.set(-0.15, 0.4, 0);
+  const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+  rightLeg.position.set(0.06, 0.2, 0);
   rightLeg.castShadow = true;
   person.add(rightLeg);
   
-  // 手臂 (可动画)
-  const leftArm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.1, 0.7),
-    new THREE.MeshBasicMaterial({ color: 0xFFDBC1 })
-  );
-  leftArm.position.set(0.35, 1.2, 0);
+  // 手臂
+  const armGeometry = new THREE.CylinderGeometry(0.03, 0.04, 0.35);
+  const armMaterial = new THREE.MeshBasicMaterial({ color: skinColor });
+  
+  const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+  leftArm.position.set(-0.15, 0.85, 0);
   leftArm.castShadow = true;
   person.add(leftArm);
   
-  const rightArm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.1, 0.7),
-    new THREE.MeshBasicMaterial({ color: 0xFFDBC1 })
-  );
-  rightArm.position.set(-0.35, 1.2, 0);
+  const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+  rightArm.position.set(0.15, 0.85, 0);
   rightArm.castShadow = true;
   person.add(rightArm);
   
-  // 随机配件
+  // 有时添加帽子或背包
   if (Math.random() > 0.7) {
     const hat = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.3, 0.25, 0.2),
-      new THREE.MeshBasicMaterial({ color: [0xFF0000, 0x0000FF, 0x008000][Math.floor(Math.random() * 3)] })
+      new THREE.CylinderGeometry(0.08, 0.1, 0.05),
+      new THREE.MeshBasicMaterial({ color: pantsColor })
     );
-    hat.position.y = 2.3;
+    hat.position.y = 1.18;
     person.add(hat);
   }
   
-  // 存储动画用的引用
-  person.userData = { leftLeg, rightLeg, leftArm, rightArm };
+  if (Math.random() > 0.8) {
+    const backpack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.15, 0.2, 0.08),
+      new THREE.MeshBasicMaterial({ color: shirtColors[(index + 2) % shirtColors.length] })
+    );
+    backpack.position.set(0, 0.8, -0.1);
+    person.add(backpack);
+  }
+  
+  // 存储动画相关数据
+  person.userData = {
+    leftLeg: leftLeg,
+    rightLeg: rightLeg,
+    leftArm: leftArm,
+    rightArm: rightArm
+  };
   
   return person;
 }
 
-function createOfficeBuildingPeople() {
+function createOfficePeople() {
   console.log('创建办公楼内的人员...');
   
   // 在办公楼窗户内添加人员剪影
-  const buildingPositions = [
-    {x: -30, z: 30, floors: 8}, 
-    {x: -10, z: 30, floors: 7}, 
-    {x: 10, z: 30, floors: 9}, 
-    {x: 30, z: 30, floors: 10}
+  const officeBuildings = [
+    {x: 15, z: 15, floors: 7},
+    {x: 25, z: 15, floors: 5},
+    {x: 15, z: 25, floors: 6},
+    {x: 25, z: 25, floors: 7},
+    {x: 15, z: -15, floors: 5},
+    {x: 25, z: -15, floors: 6}
   ];
   
-  buildingPositions.forEach(building => {
-    // 每层楼随机添加一些办公人员
-    for (let floor = 2; floor < building.floors; floor++) {
-      const floorY = floor * 3;
+  officeBuildings.forEach(building => {
+    for (let floor = 1; floor < building.floors; floor++) {
+      // 每层楼随机添加一些办公人员
+      const peopleInFloor = 2 + Math.floor(Math.random() * 4);
       
-      for (let windowNum = 0; windowNum < 3 + Math.random() * 4; windowNum++) {
+      for (let i = 0; i < peopleInFloor; i++) {
+        const officePerson = new THREE.Group();
+        
         // 简化的办公人员剪影
-        const officePerson = new THREE.Mesh(
-          new THREE.SphereGeometry(0.2),
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.08, 0.1, 0.4),
           new THREE.MeshBasicMaterial({ 
             color: 0x333333,
             transparent: true,
             opacity: 0.6
           })
         );
+        body.position.y = 0.2;
+        officePerson.add(body);
         
-        const windowX = building.x + (Math.random() - 0.5) * 8;
-        const windowZ = building.z + (Math.random() - 0.5) * 8;
+        const head = new THREE.Mesh(
+          new THREE.SphereGeometry(0.06),
+          new THREE.MeshBasicMaterial({ 
+            color: 0x444444,
+            transparent: true,
+            opacity: 0.6
+          })
+        );
+        head.position.y = 0.46;
+        officePerson.add(head);
         
-        officePerson.position.set(windowX, floorY, windowZ);
+        // 随机位置在建筑物内
+        const offsetX = (Math.random() - 0.5) * 4;
+        const offsetZ = (Math.random() - 0.5) * 4;
+        
+        officePerson.position.set(
+          building.x + offsetX,
+          floor * 3 + 1,
+          building.z + offsetZ
+        );
+        
+        // 随机朝向
+        officePerson.rotation.y = Math.random() * Math.PI * 2;
+        
         scene.add(officePerson);
-        
-        // 偶尔添加办公桌灯光效果
-        if (Math.random() > 0.8) {
-          const deskLight = new THREE.PointLight(0xFFFFAA, 0.1, 3);
-          deskLight.position.set(windowX, floorY - 0.5, windowZ);
-          scene.add(deskLight);
-        }
       }
     }
   });
@@ -919,74 +1887,25 @@ function createUrbanFurniture() {
   
   trashCanPositions.forEach(pos => {
     const trashCan = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.5, 1.2),
-      new THREE.MeshBasicMaterial({ color: 0x808080 })
+      new THREE.CylinderGeometry(0.3, 0.35, 1),
+      new THREE.MeshBasicMaterial({ color: 0x4A4A4A })
     );
-    trashCan.position.set(pos[0], 0.6, pos[1]);
+    trashCan.position.set(pos[0], 0.5, pos[1]);
     trashCan.castShadow = true;
     scene.add(trashCan);
-    
-    // 垃圾桶盖
-    const lid = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.55, 0.55, 0.1),
-      new THREE.MeshBasicMaterial({ color: 0x606060 })
-    );
-    lid.position.set(pos[0], 1.25, pos[1]);
-    scene.add(lid);
   });
   
-  // 公园长椅
-  const benchPositions = [
-    [15, 12], [15, -12], [-15, 12], [-15, -12],
-    [25, 20], [-25, 20], [25, -20], [-25, -20]
-  ];
-  
-  benchPositions.forEach(pos => {
-    const bench = new THREE.Group();
-    
-    // 长椅座位
-    const seat = new THREE.Mesh(
-      new THREE.BoxGeometry(2, 0.1, 0.5),
-      new THREE.MeshBasicMaterial({ color: 0x8B4513 })
-    );
-    seat.position.y = 0.5;
-    bench.add(seat);
-    
-    // 长椅靠背
-    const backrest = new THREE.Mesh(
-      new THREE.BoxGeometry(2, 0.8, 0.1),
-      new THREE.MeshBasicMaterial({ color: 0x8B4513 })
-    );
-    backrest.position.set(0, 0.9, 0.2);
-    bench.add(backrest);
-    
-    // 支腿
-    const leg1 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05, 0.05, 0.5),
-      new THREE.MeshBasicMaterial({ color: 0x333333 })
-    );
-    leg1.position.set(-0.7, 0.25, 0);
-    bench.add(leg1);
-    
-    const leg2 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05, 0.05, 0.5),
-      new THREE.MeshBasicMaterial({ color: 0x333333 })
-    );
-    leg2.position.set(0.7, 0.25, 0);
-    bench.add(leg2);
-    
-    bench.position.set(pos[0], 0, pos[1]);
-    bench.castShadow = true;
-    scene.add(bench);
-  });
+  console.log('城市设施创建完成');
 }
 
 function createStreetLights() {
-  // 街灯位置（避开道路中心）
+  console.log('创建街灯系统...');
+  
   const lightPositions = [
-    [10, 10], [10, -10], [-10, 10], [-10, -10],
-    [20, 8], [20, -8], [-20, 8], [-20, -8],
-    [8, 20], [-8, 20], [8, -20], [-8, -20]
+    [15, 8], [25, 8], [35, 8], [-15, 8], [-25, 8], [-35, 8],
+    [8, 15], [8, 25], [8, 35], [8, -15], [8, -25], [8, -35],
+    [15, -8], [25, -8], [35, -8], [-15, -8], [-25, -8], [-35, -8],
+    [-8, 15], [-8, 25], [-8, 35], [-8, -15], [-8, -25], [-8, -35]
   ];
   
   lightPositions.forEach(pos => {
@@ -995,44 +1914,44 @@ function createStreetLights() {
     scene.add(streetLight);
     streetLights.push(streetLight);
   });
+  
+  console.log(`创建了 ${lightPositions.length} 个街灯`);
 }
 
 function createStreetLight() {
   const streetLight = new THREE.Group();
   
   // 灯杆
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.1, 0.15, 6),
-    new THREE.MeshBasicMaterial({ color: 0x666666 })
-  );
+  const poleGeometry = new THREE.CylinderGeometry(0.1, 0.15, 6);
+  const poleMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+  const pole = new THREE.Mesh(poleGeometry, poleMaterial);
   pole.position.y = 3;
   pole.castShadow = true;
   streetLight.add(pole);
   
   // 灯具
-  const lamp = new THREE.Mesh(
-    new THREE.SphereGeometry(0.4),
-    new THREE.MeshBasicMaterial({ 
-      color: 0xFFFFAA,
-      transparent: true,
-      opacity: 0.8
-    })
-  );
-  lamp.position.y = 5.8;
+  const lampGeometry = new THREE.SphereGeometry(0.4);
+  const lampMaterial = new THREE.MeshBasicMaterial({ 
+    color: 0xFFFFAA,
+    transparent: true,
+    opacity: 0.3  // 白天几乎不可见
+  });
+  const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+  lamp.position.y = 6.5;
   streetLight.add(lamp);
   
   // 点光源
-  const pointLight = new THREE.PointLight(0xFFFFAA, 0.5, 15);
-  pointLight.position.y = 5.8;
+  const pointLight = new THREE.PointLight(0xFFFFAA, 0, 25); // 白天强度为0
+  pointLight.position.y = 6.5;
   pointLight.castShadow = true;
   streetLight.add(pointLight);
   
   // 灯罩
-  const shade = new THREE.Mesh(
-    new THREE.ConeGeometry(0.6, 0.3, 8),
-    new THREE.MeshBasicMaterial({ color: 0x333333 })
-  );
-  shade.position.y = 6.2;
+  const shadeGeometry = new THREE.ConeGeometry(0.6, 0.4, 8);
+  const shadeMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+  const shade = new THREE.Mesh(shadeGeometry, shadeMaterial);
+  shade.position.y = 7;
+  shade.rotation.x = Math.PI;
   streetLight.add(shade);
   
   streetLight.userData = { lamp, pointLight };
@@ -1040,365 +1959,374 @@ function createStreetLight() {
   return streetLight;
 }
 
-function createSkyTrain() {
-  console.log('创建空中列车系统...');
+function createTrafficLightSystem() {
+  console.log('创建交通信号灯系统...');
   
-  // 轨道支撑柱
-  const supportPositions = [
-    {x: -15, z: 20}, {x: 0, z: 20}, {x: 15, z: 20}, {x: 30, z: 20}
+  // 主要交通路口 - 只在实际道路交叉口放置
+  const intersections = [
+    {x: 0, z: 0, direction: 'both'} // 只在主要十字路口放置交通灯
   ];
   
-  supportPositions.forEach(pos => {
-    const support = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.3, 0.4, 12),
-      new THREE.MeshBasicMaterial({ color: 0x708090 })
-    );
-    support.position.set(pos.x, 6, pos.z);
-    support.castShadow = true;
-    scene.add(support);
+  intersections.forEach((intersection, index) => {
+    // 为每个路口创建4个交通灯（四个方向）- 放在路口四角
+    const directions = [
+      {x: 6, z: 6, rotation: -Math.PI/4},    // 东北角
+      {x: -6, z: 6, rotation: Math.PI*3/4},  // 西北角
+      {x: -6, z: -6, rotation: Math.PI*3/4}, // 西南角
+      {x: 6, z: -6, rotation: -Math.PI/4}    // 东南角
+    ];
+    
+    const intersectionGroup = new THREE.Group();
+    const trafficLightData = {
+      group: intersectionGroup,
+      lights: [],
+      phase: index * 60, // 错开相位
+      currentState: 'red'
+    };
+    
+    directions.forEach(dir => {
+      const trafficLight = createTrafficLight();
+      trafficLight.position.set(dir.x, 0, dir.z);
+      trafficLight.rotation.y = dir.rotation;
+      intersectionGroup.add(trafficLight);
+      trafficLightData.lights.push(trafficLight);
+    });
+    
+    intersectionGroup.position.set(intersection.x, 0, intersection.z);
+    scene.add(intersectionGroup);
+    trafficLights.push(trafficLightData);
+    
+    // 创建斑马线
+    createZebraCrossings(intersection.x, intersection.z);
   });
   
-  // 轨道
-  const trackGeometry = new THREE.BoxGeometry(50, 0.3, 1.5);
-  const trackMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
-  const track = new THREE.Mesh(trackGeometry, trackMaterial);
-  track.position.set(7.5, 12, 20);
-  track.castShadow = true;
-  scene.add(track);
-  
-  // 列车车厢
-  const trainGroup = new THREE.Group();
-  
-  // 头车
-  const locomotive = new THREE.Mesh(
-    new THREE.BoxGeometry(6, 2.5, 2.8),
-    new THREE.MeshBasicMaterial({ color: 0x4169E1 })
-  );
-  locomotive.position.set(0, 13.25, 20);
-  locomotive.castShadow = true;
-  trainGroup.add(locomotive);
-  
-  // 客车车厢
-  for (let i = 1; i < 4; i++) {
-    const carriage = new THREE.Mesh(
-      new THREE.BoxGeometry(5.5, 2.3, 2.6),
-      new THREE.MeshBasicMaterial({ color: 0x6495ED })
-    );
-    carriage.position.set(-i * 7, 13.15, 20);
-    carriage.castShadow = true;
-    trainGroup.add(carriage);
-    
-    // 车窗
-    for (let j = 0; j < 8; j++) {
-      const window = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.6, 0.8),
-        new THREE.MeshBasicMaterial({ 
-          color: Math.random() > 0.5 ? 0x87CEEB : 0xFFFFAA,
-          transparent: true,
-          opacity: 0.7
-        })
-      );
-      window.position.set(-i * 7 + (j - 3.5) * 0.6, 13.5, 21.31);
-      trainGroup.add(window);
-    }
-  }
-  
-  // 添加乘客剪影
-  for (let carIndex = 0; carIndex < 4; carIndex++) {
-    for (let seat = 0; seat < 12; seat++) {
-      if (Math.random() > 0.4) { // 60% 的座位有乘客
-        const passenger = new THREE.Mesh(
-          new THREE.SphereGeometry(0.15),
-          new THREE.MeshBasicMaterial({ 
-            color: 0x333333,
-            transparent: true,
-            opacity: 0.6
-          })
-        );
-        passenger.position.set(
-          -carIndex * 7 + (seat - 6) * 0.4,
-          13.2,
-          20 + (Math.random() - 0.5) * 1.8
-        );
-        trainGroup.add(passenger);
-      }
-    }
-  }
-  
-  scene.add(trainGroup);
+  console.log(`创建了 ${intersections.length} 个路口的交通信号灯`);
 }
 
-function createSubway() {
-  console.log('创建地铁系统...');
+function createZebraCrossings(centerX, centerZ) {
+  // 斑马线条纹材质
+  const stripeWidth = 0.8;
+  const stripeLength = 8;
+  const numStripes = 6;
   
-  // 地铁入口
-  const subwayEntrances = [
-    {x: 12, z: 12}, {x: -12, z: 12}, {x: 12, z: -12}, {x: -12, z: -12}
+  // 创建四个方向的斑马线
+  const crossings = [
+    {x: centerX, z: centerZ + 4, rotation: 0, name: '北侧斑马线'},  // 北侧
+    {x: centerX, z: centerZ - 4, rotation: 0, name: '南侧斑马线'},  // 南侧
+    {x: centerX + 4, z: centerZ, rotation: Math.PI/2, name: '东侧斑马线'}, // 东侧
+    {x: centerX - 4, z: centerZ, rotation: Math.PI/2, name: '西侧斑马线'}  // 西侧
   ];
   
-  subwayEntrances.forEach(pos => {
-    // 入口建筑
-    const entrance = new THREE.Mesh(
-      new THREE.BoxGeometry(3, 2, 3),
-      new THREE.MeshBasicMaterial({ color: 0x2F4F4F })
-    );
-    entrance.position.set(pos.x, 1, pos.z);
-    entrance.castShadow = true;
-    scene.add(entrance);
+  crossings.forEach(crossing => {
+    const zebraGroup = new THREE.Group();
     
-    // 地铁标志
-    const sign = new THREE.Mesh(
-      new THREE.PlaneGeometry(2, 0.8),
-      new THREE.MeshBasicMaterial({ color: 0xFF0000 })
-    );
-    sign.position.set(pos.x, 2.5, pos.z + 1.51);
-    scene.add(sign);
+    // 创建白色条纹
+    for (let i = 0; i < numStripes; i++) {
+      const stripe = new THREE.Mesh(
+        new THREE.PlaneGeometry(stripeWidth, stripeLength/numStripes * 0.8),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+      );
+      
+      stripe.rotation.x = -Math.PI/2;
+      stripe.position.y = 0.01; // 略微抬高避免z-fighting
+      
+      // 沿条纹方向排列
+      if (crossing.rotation === 0) {
+        // 南北方向斑马线
+        stripe.position.x = (i - numStripes/2 + 0.5) * stripeWidth * 1.2;
+        stripe.position.z = 0;
+      } else {
+        // 东西方向斑马线  
+        stripe.position.x = 0;
+        stripe.position.z = (i - numStripes/2 + 0.5) * stripeWidth * 1.2;
+      }
+      
+      zebraGroup.add(stripe);
+    }
     
-    // 楼梯下沉
-    const stairs = new THREE.Mesh(
-      new THREE.BoxGeometry(2, 0.5, 4),
-      new THREE.MeshBasicMaterial({ color: 0x696969 })
-    );
-    stairs.position.set(pos.x, -0.25, pos.z + 2);
-    scene.add(stairs);
+    zebraGroup.position.set(crossing.x, 0, crossing.z);
+    zebraGroup.rotation.y = crossing.rotation;
+    zebraGroup.userData = { type: 'zebra_crossing', name: crossing.name };
     
-    // 地下隧道入口（部分可见）
-    const tunnelEntrance = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.5, 1.5, 1, 16, 1, false, 0, Math.PI),
-      new THREE.MeshBasicMaterial({ 
-        color: 0x444444,
-        side: THREE.DoubleSide
-      })
-    );
-    tunnelEntrance.position.set(pos.x, -0.5, pos.z + 3);
-    tunnelEntrance.rotation.x = Math.PI / 2;
-    scene.add(tunnelEntrance);
+    scene.add(zebraGroup);
+    console.log(`创建了${crossing.name}`);
   });
 }
 
-function createSkyWheel() {
-  console.log('创建天空之轮（摩天轮）...');
+function createTrafficLight() {
+  const trafficLight = new THREE.Group();
   
-  const skyWheelGroup = new THREE.Group();
+  // 信号灯杆
+  const poleGeometry = new THREE.CylinderGeometry(0.08, 0.12, 4);
+  const poleMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+  const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+  pole.position.y = 2;
+  pole.castShadow = true;
+  trafficLight.add(pole);
   
-  // 主要支撑结构
-  const mainSupport = new THREE.Mesh(
-    new THREE.CylinderGeometry(1, 1.5, 25),
-    new THREE.MeshBasicMaterial({ color: 0x708090 })
+  // 信号灯箱
+  const lightBoxGeometry = new THREE.BoxGeometry(0.8, 2.1, 0.25);
+  const lightBoxMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+  const lightBox = new THREE.Mesh(lightBoxGeometry, lightBoxMaterial);
+  lightBox.position.set(0, 3.8, 0.4);
+  lightBox.castShadow = true;
+  trafficLight.add(lightBox);
+  
+  // 红绿黄灯
+  const redLight = new THREE.Mesh(
+    new THREE.SphereGeometry(0.2),
+    new THREE.MeshBasicMaterial({ 
+      color: 0x440000,
+      transparent: true,
+      opacity: 0.8
+    })
   );
-  mainSupport.position.y = 12.5;
-  mainSupport.castShadow = true;
-  skyWheelGroup.add(mainSupport);
+  redLight.position.set(0, 4.4, 0.55);
+  redLight.userData = { type: 'red' };
+  trafficLight.add(redLight);
   
-  // 摩天轮主轮结构 - 使用环形几何
-  const wheelRadius = 12;
-  const wheelGeometry = new THREE.TorusGeometry(wheelRadius, 0.3, 16, 100);
-  const wheelMaterial = new THREE.MeshBasicMaterial({ color: 0x4682B4 });
-  const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-  wheel.position.y = 20;
-  wheel.rotation.x = Math.PI / 2;
-  wheel.castShadow = true;
-  skyWheelGroup.add(wheel);
-  
-  // 辐条结构
-  const spokeGeometry = new THREE.CylinderGeometry(0.1, 0.1, wheelRadius * 2);
-  const spokeMaterial = new THREE.MeshBasicMaterial({ color: 0x4682B4 });
-  
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * Math.PI * 2;
-    const spoke = new THREE.Mesh(spokeGeometry, spokeMaterial);
-    spoke.position.set(
-      Math.cos(angle) * wheelRadius / 2,
-      20,
-      Math.sin(angle) * wheelRadius / 2
-    );
-    spoke.rotation.z = angle + Math.PI / 2;
-    spoke.castShadow = true;
-    skyWheelGroup.add(spoke);
-  }
-  
-  // 吊舱（改进版本，带连接臂）
-  const numCabins = 16;
-  for (let i = 0; i < numCabins; i++) {
-    const angle = (i / numCabins) * Math.PI * 2;
-    const cabinGroup = new THREE.Group();
-    
-    // 连接臂系统
-    const mainSuspension = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05, 0.05, 1.5),
-      new THREE.MeshBasicMaterial({ color: 0x444444 })
-    );
-    mainSuspension.position.y = -0.75;
-    cabinGroup.add(mainSuspension);
-    
-    // 连接支架
-    const connectionBracket = new THREE.Mesh(
-      new THREE.BoxGeometry(0.3, 0.2, 0.3),
-      new THREE.MeshBasicMaterial({ color: 0x666666 })
-    );
-    connectionBracket.position.y = 0.1;
-    cabinGroup.add(connectionBracket);
-    
-    // 吊舱主体 - 圆形玻璃舱
-    const cabinMain = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.3, 1.3, 2.5, 16, 1, true),
-      new THREE.MeshBasicMaterial({ 
-        color: 0x87CEEB, 
-        transparent: true, 
-        opacity: 0.7, 
-        side: THREE.DoubleSide
-      })
-    );
-    cabinMain.position.y = -2;
-    cabinGroup.add(cabinMain);
-    
-    // 吊舱底部
-    const cabinFloor = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.3, 1.3, 0.2),
-      new THREE.MeshBasicMaterial({ color: 0x8B4513 })
-    );
-    cabinFloor.position.y = -3.1;
-    cabinGroup.add(cabinFloor);
-    
-    // 吊舱顶部
-    const cabinRoof = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.3, 1.3, 0.2),
-      new THREE.MeshBasicMaterial({ color: 0x696969 })
-    );
-    cabinRoof.position.y = -0.9;
-    cabinGroup.add(cabinRoof);
-    
-    // 座椅（内部）
-    for (let s = 0; s < 6; s++) {
-      const seatAngle = (s / 6) * Math.PI * 2;
-      const seat = new THREE.Mesh(
-        new THREE.BoxGeometry(0.3, 0.4, 0.3),
-        new THREE.MeshBasicMaterial({ color: 0x8B0000 })
-      );
-      seat.position.set(
-        Math.cos(seatAngle) * 0.8,
-        -2.8,
-        Math.sin(seatAngle) * 0.8
-      );
-      cabinGroup.add(seat);
-    }
-    
-    // 乘客（随机）
-    if (Math.random() > 0.3) {
-      for (let p = 0; p < Math.floor(Math.random() * 4) + 2; p++) {
-        const passenger = new THREE.Mesh(
-          new THREE.SphereGeometry(0.15),
-          new THREE.MeshBasicMaterial({ 
-            color: [0xFF6347, 0x4169E1, 0x32CD32, 0xFFD700][p % 4],
-            transparent: true,
-            opacity: 0.8
-          })
-        );
-        const passengerAngle = (p / 6) * Math.PI * 2;
-        passenger.position.set(
-          Math.cos(passengerAngle) * 0.8,
-          -2.3,
-          Math.sin(passengerAngle) * 0.8
-        );
-        cabinGroup.add(passenger);
-      }
-    }
-    
-    // 定位吊舱
-    cabinGroup.position.set(
-      Math.cos(angle) * wheelRadius,
-      20,
-      Math.sin(angle) * wheelRadius
-    );
-    
-    skyWheelGroup.add(cabinGroup);
-  }
-  
-  // 基础平台
-  const platform = new THREE.Mesh(
-    new THREE.CylinderGeometry(8, 10, 2),
-    new THREE.MeshBasicMaterial({ color: 0x696969 })
+  const yellowLight = new THREE.Mesh(
+    new THREE.SphereGeometry(0.2),
+    new THREE.MeshBasicMaterial({ 
+      color: 0x444400,
+      transparent: true,
+      opacity: 0.8
+    })
   );
-  platform.position.y = 1;
-  platform.castShadow = true;
-  skyWheelGroup.add(platform);
+  yellowLight.position.set(0, 3.8, 0.55);
+  yellowLight.userData = { type: 'yellow' };
+  trafficLight.add(yellowLight);
   
-  // 装饰性灯光
-  const decorativeLights = [];
-  for (let i = 0; i < 24; i++) {
-    const angle = (i / 24) * Math.PI * 2;
-    const light = new THREE.PointLight(
-      [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF][i % 6], 
-      0.3, 
-      5
-    );
-    light.position.set(
-      Math.cos(angle) * wheelRadius,
-      20,
-      Math.sin(angle) * wheelRadius
-    );
-    skyWheelGroup.add(light);
-    decorativeLights.push(light);
-  }
+  const greenLight = new THREE.Mesh(
+    new THREE.SphereGeometry(0.2),
+    new THREE.MeshBasicMaterial({ 
+      color: 0x004400,
+      transparent: true,
+      opacity: 0.8
+    })
+  );
+  greenLight.position.set(0, 3.2, 0.55);
+  greenLight.userData = { type: 'green' };
+  trafficLight.add(greenLight);
   
-  skyWheelGroup.position.set(-35, 0, -35);
-  scene.add(skyWheelGroup);
+  // 行人信号灯
+  const pedestrianBox = new THREE.Mesh(
+    new THREE.BoxGeometry(0.4, 0.8, 0.15),
+    new THREE.MeshBasicMaterial({ color: 0x222222 })
+  );
+  pedestrianBox.position.set(0.6, 2.5, 0.3);
+  trafficLight.add(pedestrianBox);
   
-  console.log('天空之轮创建完成');
+  const walkLight = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.3, 0.3),
+    new THREE.MeshBasicMaterial({ 
+      color: 0x004400,
+      transparent: true,
+      opacity: 0.5
+    })
+  );
+  walkLight.position.set(0.6, 2.7, 0.38);
+  trafficLight.add(walkLight);
+  
+  const stopLight = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.3, 0.3),
+    new THREE.MeshBasicMaterial({ 
+      color: 0xFF0000,
+      transparent: true,
+      opacity: 0.8
+    })
+  );
+  stopLight.position.set(0.6, 2.3, 0.38);
+  trafficLight.add(stopLight);
+  
+  trafficLight.userData = { 
+    redLight, 
+    yellowLight, 
+    greenLight,
+    walkLight,
+    stopLight,
+    state: 'red'
+  };
+  
+  return trafficLight;
 }
 
-function updateDayNightCycle() {
-  dayTime += 0.0003;
-  if (dayTime > 1) dayTime = 0;
-  
-  // 天空颜色变化
-  const isDaytime = dayTime > 0.25 && dayTime < 0.75;
-  const sunHeight = Math.sin(dayTime * Math.PI * 2);
-  
-  let skyColor;
-  if (isDaytime) {
-    // 日间：蓝色到橙色渐变
-    const t = Math.abs(sunHeight);
-    skyColor = new THREE.Color().lerpColors(
-      new THREE.Color(0xFF6347), // 橙色日出/日落
-      new THREE.Color(0x87CEEB), // 蓝色白天
-      t
-    );
-  } else {
-    // 夜间：深蓝色
-    skyColor = new THREE.Color(0x191970);
+// 交通灯更新系统
+function updateTrafficLights() {
+  if (!trafficLights || trafficLights.length === 0) {
+    return; // 没有交通灯时直接返回
   }
   
-  scene.fog.color = skyColor;
-  renderer.setClearColor(skyColor);
+  const currentTime = Date.now();
   
-  // 太阳位置和强度
-  const sunAngle = dayTime * Math.PI * 2;
-  sunLight.position.set(
-    Math.cos(sunAngle) * 50,
-    Math.sin(sunAngle) * 50,
-    25
-  );
-  sunLight.intensity = isDaytime ? Math.max(0.3, sunHeight * 1.2) : 0;
-  
-  // 月亮位置和强度
-  const moonAngle = (dayTime + 0.5) * Math.PI * 2;
-  moonLight.position.set(
-    Math.cos(moonAngle) * 50,
-    Math.sin(moonAngle) * 30,
-    -25
-  );
-  moonLight.intensity = !isDaytime ? 0.4 : 0;
-  
-  // 环境光调整
-  ambientLight.intensity = isDaytime ? 0.6 : 0.2;
-  
-  // 街灯控制
-  const streetLightIntensity = isDaytime ? 0 : Math.max(0.6, Math.abs(sunHeight) * 0.8);
-  streetLights.forEach(light => {
-    if (light.userData && light.userData.pointLight) {
-      light.userData.pointLight.intensity = streetLightIntensity;
+  trafficLights.forEach((intersection, index) => {
+    if (!intersection || !intersection.group) return; // 跳过无效的交叉路口
+    
+    if (!intersection.lastUpdate) {
+      intersection.lastUpdate = currentTime;
+      intersection.cycleTime = 0;
     }
+    
+    const elapsed = currentTime - intersection.lastUpdate;
+    intersection.cycleTime += elapsed;
+    intersection.lastUpdate = currentTime;
+    
+    // 30秒周期：绿灯15秒，黄灯3秒，红灯12秒
+    const cycle = intersection.cycleTime % 30000;
+    let newState = 'red';
+    
+    if (cycle < 15000) {
+      newState = 'green';
+    } else if (cycle < 18000) {
+      newState = 'yellow';
+    }
+    
+    if (intersection.currentState !== newState) {
+      intersection.currentState = newState;
+      updateIntersectionLights(intersection, newState);
+    }
+  });
+}
+
+function updateIntersectionLights(intersection, state) {
+  intersection.lights.forEach(light => {
+    if (light.userData) {
+      const { redLight, yellowLight, greenLight } = light.userData;
+      
+      if (redLight && yellowLight && greenLight) {
+        redLight.material.color.setHex(state === 'red' ? 0xFF0000 : 0x440000);
+        yellowLight.material.color.setHex(state === 'yellow' ? 0xFFFF00 : 0x444400);
+        greenLight.material.color.setHex(state === 'green' ? 0x00FF00 : 0x004400);
+        
+        // Update userData state
+        light.userData.state = state;
+      }
+    }
+  });
+}
+
+// 检查车辆是否需要在交通灯前停车
+function checkTrafficLightForCar(car) {
+  // 如果没有交通灯，直接返回可以通行
+  if (!trafficLights || trafficLights.length === 0) {
+    return true;
+  }
+  
+  // 确保车辆有必要的用户数据
+  if (!car.userData) {
+    car.userData = { moving: true, waitingAtLight: false };
+  }
+  
+  if (!car.userData.moving && car.userData.waitingAtLight) return false; // 已经在等红灯
+  
+  for (let intersection of trafficLights) {
+    if (!intersection.group || !intersection.group.position) continue;
+    
+    const distance = Math.sqrt(
+      Math.pow(car.position.x - intersection.group.position.x, 2) + 
+      Math.pow(car.position.z - intersection.group.position.z, 2)
+    );
+    
+    if (distance < 12 && (intersection.currentState === 'red' || intersection.currentState === 'yellow')) {
+      // 检查车辆是否在正确的方向接近交通灯
+      if (isApproachingIntersection(car, intersection)) {
+        car.userData.moving = false;
+        car.userData.waitingAtLight = true;
+        return false; // 需要停车
+      }
+    } else if (distance < 15 && intersection.currentState === 'green' && car.userData.waitingAtLight) {
+      car.userData.moving = true;
+      car.userData.waitingAtLight = false;
+      return true; // 可以通行
+    }
+  }
+  return true; // 默认可以通行
+}
+
+function isApproachingIntersection(car, intersection) {
+  if (!intersection.group || !intersection.group.position) return false;
+  
+  const dx = intersection.group.position.x - car.position.x;
+  const dz = intersection.group.position.z - car.position.z;
+  const distance = Math.sqrt(dx * dx + dz * dz);
+  
+  // 检查车辆是否在靠近路口的路径上
+  return distance < 15 && distance > 5;
+}
+
+// 检查行人是否需要等待绿灯
+function checkTrafficLightForPerson(person) {
+  // 如果没有交通灯，直接返回可以通行
+  if (!trafficLights || trafficLights.length === 0) {
+    return true;
+  }
+  
+  // 确保行人有必要的用户数据
+  if (!person.userData) {
+    person.userData = { moving: true, waitingAtLight: false };
+  }
+  
+  if (!person.userData.moving && person.userData.waitingAtLight) return false;
+  
+  for (let intersection of trafficLights) {
+    if (!intersection.group || !intersection.group.position) continue;
+    
+    const distance = Math.sqrt(
+      Math.pow(person.object.position.x - intersection.group.position.x, 2) + 
+      Math.pow(person.object.position.z - intersection.group.position.z, 2)
+    );
+    
+    if (distance < 8 && intersection.currentState !== 'green') {
+      person.userData.moving = false;
+      person.userData.waitingAtLight = true;
+      return false; // 需要等待
+    } else if (distance < 10 && intersection.currentState === 'green' && person.userData.waitingAtLight) {
+      person.userData.moving = true;
+      person.userData.waitingAtLight = false;
+      return true; // 可以通行
+    }
+  }
+  return true; // 默认可以通行
+}
+
+function setupControls() {
+  let isMouseDown = false;
+  let mouseX = 0, mouseY = 0;
+  
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    isMouseDown = true;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+  
+  window.addEventListener('mousemove', (e) => {
+    if (!isMouseDown) return;
+    
+    const deltaX = e.clientX - mouseX;
+    const deltaY = e.clientY - mouseY;
+    
+    const spherical = new THREE.Spherical();
+    spherical.setFromVector3(camera.position);
+    spherical.theta -= deltaX * 0.01;
+    spherical.phi += deltaY * 0.01;
+    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+    
+    camera.position.setFromSpherical(spherical);
+    camera.lookAt(0, 0, 0);
+    
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+  
+  window.addEventListener('mouseup', () => {
+    isMouseDown = false;
+  });
+  
+  renderer.domElement.addEventListener('wheel', (e) => {
+    const distance = camera.position.length();
+    const newDistance = distance * (1 + e.deltaY * 0.001);
+    camera.position.normalize().multiplyScalar(Math.max(10, Math.min(100, newDistance)));
+    camera.lookAt(0, 0, 0);
   });
 }
 
@@ -1410,6 +2338,9 @@ function animate() {
   
   // 简单交通灯循环
   updateSimpleTrafficLights();
+  
+  // 更新交通信号灯 (disabled)
+  // updateTrafficLights();
   
   // 汽车运动和车轮旋转 - 遵循交通灯
   cars.forEach(car => {
@@ -1478,175 +2409,427 @@ function animate() {
         Math.sin(person.object.rotation.y),
         0,
         Math.cos(person.object.rotation.y)
-      );
-      person.turnTimer = 100 + Math.random() * 200;
+      ).normalize();
+      person.turnTimer = 50 + Math.random() * 150;
     }
   });
+  
+  // 天空列车动画
+  if (window.skyTrainGroup) {
+    window.skyTrainGroup.position.x += 0.3;
+    if (window.skyTrainGroup.position.x > 60) {
+      window.skyTrainGroup.position.x = -60;
+    }
+  }
+  
+  // 摩天轮动画
+  if (window.skyWheelGroup) {
+    window.skyWheelAngle += 0.01;
+    window.skyWheelCabins.forEach((cabin, i) => {
+      const angle = (i / 12) * Math.PI * 2 + window.skyWheelAngle;
+      cabin.position.set(Math.cos(angle) * 15, 20 + Math.sin(angle) * 15, 0);
+    });
+  }
   
   renderer.render(scene, camera);
 }
 
-function setupControls() {
-  let isMouseDown = false;
-  let mouseX = 0, mouseY = 0;
+function updateDayNightCycle() {
+  // 缓慢的昼夜循环 - 每5分钟一个完整周期
+  dayTime = (dayTime + 0.0003) % 1;
   
-  let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-  let rotateLeft = false, rotateRight = false;
+  // 计算太阳位置 (-1 到 1)
+  const sunHeight = Math.sin(dayTime * Math.PI * 2);
+  const isDaytime = sunHeight > -0.2;
   
-  // Mouse controls
-  document.addEventListener('mousedown', (event) => {
-    isMouseDown = true;
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-  });
-  
-  document.addEventListener('mouseup', () => {
-    isMouseDown = false;
-  });
-  
-  document.addEventListener('mousemove', (event) => {
-    if (!isMouseDown) return;
-    
-    const deltaX = event.clientX - mouseX;
-    const deltaY = event.clientY - mouseY;
-    
-    // 水平旋转（绕Y轴）
-    camera.rotation.y -= deltaX * 0.005;
-    
-    // 垂直旋转（绕X轴）
-    camera.rotation.x -= deltaY * 0.005;
-    camera.rotation.x = Math.max(-Math.PI/3, Math.min(Math.PI/3, camera.rotation.x));
-    
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-  });
-  
-  // Keyboard controls
-  document.addEventListener('keydown', (event) => {
-    switch(event.code) {
-      case 'KeyW': moveForward = true; break;
-      case 'KeyS': moveBackward = true; break;
-      case 'KeyA': moveLeft = true; break;
-      case 'KeyD': moveRight = true; break;
-      case 'KeyQ': rotateLeft = true; break;
-      case 'KeyE': rotateRight = true; break;
-      case 'Space': 
-        event.preventDefault();
-        toggleAudio();
-        break;
-    }
-  });
-  
-  document.addEventListener('keyup', (event) => {
-    switch(event.code) {
-      case 'KeyW': moveForward = false; break;
-      case 'KeyS': moveBackward = false; break;
-      case 'KeyA': moveLeft = false; break;
-      case 'KeyD': moveRight = false; break;
-      case 'KeyQ': rotateLeft = false; break;
-      case 'KeyE': rotateRight = false; break;
-    }
-  });
-  
-  // Movement update function
-  function updateCameraMovement() {
-    const moveSpeed = 0.5;
-    const rotateSpeed = 0.02;
-    
-    if (moveForward) {
-      camera.translateZ(-moveSpeed);
-    }
-    if (moveBackward) {
-      camera.translateZ(moveSpeed);
-    }
-    if (moveLeft) {
-      camera.translateX(-moveSpeed);
-    }
-    if (moveRight) {
-      camera.translateX(moveSpeed);
-    }
-    if (rotateLeft) {
-      camera.rotation.y += rotateSpeed;
-    }
-    if (rotateRight) {
-      camera.rotation.y -= rotateSpeed;
-    }
-    
-    requestAnimationFrame(updateCameraMovement);
+  // 动态天空颜色
+  let skyColor;
+  if (sunHeight > 0.8) {
+    // 正午 - 明亮蓝天
+    skyColor = new THREE.Color(0x87CEEB);
+  } else if (sunHeight > 0.2) {
+    // 白天 - 蓝天
+    skyColor = new THREE.Color(0x70B8FF);
+  } else if (sunHeight > -0.2) {
+    // 黄昏/黎明 - 橙红色
+    const t = (sunHeight + 0.2) / 0.4;
+    skyColor = new THREE.Color().lerpColors(
+      new THREE.Color(0x1a1a2e), // 深夜色
+      new THREE.Color(0xFF6B35), // 黄昏橙色
+      t
+    );
+  } else if (sunHeight > -0.8) {
+    // 夜晚 - 深蓝色
+    const t = (sunHeight + 0.8) / 0.6;
+    skyColor = new THREE.Color().lerpColors(
+      new THREE.Color(0x0B1426), // 深夜
+      new THREE.Color(0x1a1a2e), // 夜晚蓝
+      t
+    );
+  } else {
+    // 深夜 - 最暗
+    skyColor = new THREE.Color(0x0B1426);
   }
-  updateCameraMovement();
+  
+  scene.background = skyColor;
+  
+  // 更新太阳光
+  if (isDaytime) {
+    sunLight.intensity = Math.max(0.2, sunHeight * 1.2);
+    sunLight.color.setHex(sunHeight > 0.3 ? 0xffffff : 0xffaa88); // 黄昏时偏橙色
+  } else {
+    sunLight.intensity = 0;
+  }
+  
+  // 更新月光  
+  moonLight.intensity = isDaytime ? 0 : Math.max(0.1, Math.abs(sunHeight) * 0.3);
+  
+  // 更新环境光
+  ambientLight.intensity = isDaytime ? 
+    Math.max(0.4, 0.3 + sunHeight * 0.4) : 
+    Math.max(0.1, Math.abs(sunHeight) * 0.15);
+  
+  // 更新街灯
+  const streetLightIntensity = isDaytime ? 0 : Math.max(0.6, Math.abs(sunHeight) * 0.8);
+  streetLights.forEach(light => {
+    if (light.userData.pointLight) {
+      light.userData.pointLight.intensity = streetLightIntensity;
+    }
+    if (light.userData.lamp) {
+      light.userData.lamp.material.opacity = isDaytime ? 0.1 : Math.max(0.6, Math.abs(sunHeight));
+    }
+  });
+  
+  // 更新建筑物窗户灯光效果
+  updateBuildingLights(isDaytime);
 }
 
-// Audio system for city sounds
+function updateBuildingLights(isDaytime) {
+  // 为夜晚的建筑物添加窗户灯光效果
+  scene.children.forEach(child => {
+    if (child.type === 'Group') {
+      child.children.forEach(subChild => {
+        if (subChild.material && subChild.material.color) {
+          // 检查是否是窗户 (蓝色材质)
+          if (subChild.material.color.getHex() === 0x4A90E2 || 
+              subChild.material.color.getHex() === 0x6495ED ||
+              subChild.material.color.getHex() === 0x87CEEB) {
+            
+            if (!isDaytime) {
+              // 夜晚 - 随机点亮窗户
+              if (Math.random() > 0.7) {
+                subChild.material.color.setHex(0xFFFFAA); // 温暖的黄光
+                subChild.material.opacity = 0.9;
+              }
+            } else {
+              // 白天 - 恢复正常窗户颜色
+              const originalColors = [0x4A90E2, 0x6495ED, 0x87CEEB];
+              subChild.material.color.setHex(originalColors[Math.floor(Math.random() * originalColors.length)]);
+              subChild.material.opacity = 0.7;
+            }
+          }
+        }
+      });
+    }
+  });
+}
+
+// 音频系统
 function initAudio() {
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    console.log('Audio system initialized');
-  } catch (error) {
-    console.log('Audio not available:', error);
+    console.log('音频系统初始化成功');
+    
+    // 添加点击启用音频的提示
+    const audioButton = document.createElement('button');
+    audioButton.textContent = '🔊 启用声音';
+    audioButton.style.cssText = `
+      position: fixed; top: 50px; right: 10px; z-index: 10;
+      background: rgba(0,0,0,0.8); color: white; border: none;
+      padding: 10px; border-radius: 5px; cursor: pointer;
+    `;
+    audioButton.onclick = enableAudio;
+    document.body.appendChild(audioButton);
+    
+  } catch (e) {
+    console.log('浏览器不支持Web Audio API');
   }
 }
 
-function toggleAudio() {
-  if (!audioContext) return;
-  
-  audioEnabled = !audioEnabled;
-  
-  if (audioEnabled && audioContext.state === 'suspended') {
-    audioContext.resume();
+function enableAudio() {
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume().then(() => {
+      audioEnabled = true;
+      startCityAmbience();
+      document.querySelector('button').textContent = '🔊 声音已开启';
+      console.log('城市声音已启用');
+    });
+  } else if (audioContext) {
+    audioEnabled = true;
     startCityAmbience();
-    console.log('City sounds enabled');
-  } else if (!audioEnabled) {
-    console.log('City sounds disabled');
+    document.querySelector('button').textContent = '🔊 声音已开启';
   }
 }
 
 function startCityAmbience() {
-  if (!audioEnabled || !audioContext) return;
+  if (!audioContext || !audioEnabled) return;
   
-  // Traffic ambient sound (low frequency rumble)
-  const trafficOscillator = audioContext.createOscillator();
-  const trafficGain = audioContext.createGain();
+  // 环境音效
+  createAmbientSound();
   
-  trafficOscillator.type = 'sawtooth';
-  trafficOscillator.frequency.setValueAtTime(80, audioContext.currentTime);
-  trafficGain.gain.setValueAtTime(0.02, audioContext.currentTime);
+  // 交通音效
+  setInterval(() => {
+    if (audioEnabled && Math.random() > 0.7) {
+      playCarSound();
+    }
+  }, 3000);
   
-  trafficOscillator.connect(trafficGain);
-  trafficGain.connect(audioContext.destination);
-  trafficOscillator.start();
+  // 天空列车音效
+  setInterval(() => {
+    if (audioEnabled && Math.random() > 0.8) {
+      playTrainSound();
+    }
+  }, 8000);
   
-  // Wind ambience
-  const windNoise = audioContext.createBufferSource();
-  const windGain = audioContext.createGain();
+  // 随机城市音效
+  setInterval(() => {
+    if (audioEnabled && Math.random() > 0.9) {
+      playCitySound();
+    }
+  }, 5000);
+}
+
+function createAmbientSound() {
+  if (!audioContext || !audioEnabled) return;
   
-  // Create white noise for wind
-  const bufferSize = audioContext.sampleRate * 2;
+  // 创建持续的环境白噪声
+  const bufferSize = audioContext.sampleRate * 2; // 2秒缓冲
   const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
   const output = noiseBuffer.getChannelData(0);
   
   for (let i = 0; i < bufferSize; i++) {
-    output[i] = Math.random() * 2 - 1;
+    output[i] = (Math.random() * 2 - 1) * 0.05; // 很轻的白噪声
   }
   
-  windNoise.buffer = noiseBuffer;
-  windNoise.loop = true;
-  windGain.gain.setValueAtTime(0.005, audioContext.currentTime);
+  const whiteNoise = audioContext.createBufferSource();
+  whiteNoise.buffer = noiseBuffer;
+  whiteNoise.loop = true;
   
-  windNoise.connect(windGain);
-  windGain.connect(audioContext.destination);
-  windNoise.start();
+  const gainNode = audioContext.createGain();
+  gainNode.gain.value = 0.1;
+  
+  const filterNode = audioContext.createBiquadFilter();
+  filterNode.type = 'lowpass';
+  filterNode.frequency.value = 500;
+  
+  whiteNoise.connect(filterNode);
+  filterNode.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  whiteNoise.start();
 }
 
-// Window resize handler
+function playCarSound() {
+  if (!audioContext || !audioEnabled) return;
+  
+  // 汽车引擎声音合成
+  const oscillator1 = audioContext.createOscillator();
+  const oscillator2 = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  const filterNode = audioContext.createBiquadFilter();
+  
+  oscillator1.type = 'sawtooth';
+  oscillator1.frequency.value = 80 + Math.random() * 40;
+  
+  oscillator2.type = 'square';
+  oscillator2.frequency.value = 120 + Math.random() * 60;
+  
+  filterNode.type = 'lowpass';
+  filterNode.frequency.value = 200;
+  
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
+  
+  oscillator1.connect(filterNode);
+  oscillator2.connect(filterNode);
+  filterNode.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator1.start(audioContext.currentTime);
+  oscillator2.start(audioContext.currentTime);
+  oscillator1.stop(audioContext.currentTime + 2);
+  oscillator2.stop(audioContext.currentTime + 2);
+  
+  // 偶尔加入喇叭声
+  if (Math.random() > 0.85) {
+    setTimeout(() => playHornSound(), 500);
+  }
+}
+
+function playHornSound() {
+  if (!audioContext || !audioEnabled) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.type = 'square';
+  oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+  oscillator.frequency.setValueAtTime(330, audioContext.currentTime + 0.1);
+  
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
+  gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.3);
+}
+
+function playTrainSound() {
+  if (!audioContext || !audioEnabled) return;
+  
+  // 火车轨道声音
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  const filterNode = audioContext.createBiquadFilter();
+  
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.value = 60;
+  
+  filterNode.type = 'bandpass';
+  filterNode.frequency.value = 200;
+  filterNode.Q.value = 5;
+  
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.5);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 4);
+  
+  oscillator.connect(filterNode);
+  filterNode.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 4);
+  
+  // 添加节奏性的轨道声
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      if (audioContext && audioEnabled) {
+        const clickOsc = audioContext.createOscillator();
+        const clickGain = audioContext.createGain();
+        
+        clickOsc.type = 'square';
+        clickOsc.frequency.value = 1000;
+        
+        clickGain.gain.setValueAtTime(0.1, audioContext.currentTime);
+        clickGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        clickOsc.connect(clickGain);
+        clickGain.connect(audioContext.destination);
+        
+        clickOsc.start(audioContext.currentTime);
+        clickOsc.stop(audioContext.currentTime + 0.1);
+      }
+    }, i * 200);
+  }
+}
+
+function playCitySound() {
+  if (!audioContext || !audioEnabled) return;
+  
+  const sounds = ['construction', 'siren', 'bird'];
+  const soundType = sounds[Math.floor(Math.random() * sounds.length)];
+  
+  switch(soundType) {
+    case 'construction':
+      playConstructionSound();
+      break;
+    case 'siren':
+      playSirenSound();
+      break;
+    case 'bird':
+      playBirdSound();
+      break;
+  }
+}
+
+function playConstructionSound() {
+  // 工地声音
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  const filterNode = audioContext.createBiquadFilter();
+  
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.value = 150 + Math.random() * 100;
+  
+  filterNode.type = 'lowpass';
+  filterNode.frequency.value = 300;
+  
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 0.2);
+  gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.5);
+  
+  oscillator.connect(filterNode);
+  filterNode.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 1.5);
+}
+
+function playSirenSound() {
+  // 紧急车辆警报声
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+  oscillator.frequency.linearRampToValueAtTime(1200, audioContext.currentTime + 0.5);
+  oscillator.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 1);
+  oscillator.frequency.linearRampToValueAtTime(1200, audioContext.currentTime + 1.5);
+  oscillator.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 2);
+  
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.1);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 2);
+}
+
+function playBirdSound() {
+  // 鸟叫声
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(2000, audioContext.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(3000, audioContext.currentTime + 0.1);
+  oscillator.frequency.exponentialRampToValueAtTime(2500, audioContext.currentTime + 0.2);
+  
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.05);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.3);
+}
+
+window.addEventListener('load', init);
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-// Initialize when page loads
-window.addEventListener('load', init);
 </script>
 </body>
 </html>
